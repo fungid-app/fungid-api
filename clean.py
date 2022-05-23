@@ -4,10 +4,12 @@ from fastai.data.external import *
 import ntpath
 import csv
 
+categorized_file = "dbs/images/categorized.csv"
+
 learn_inf = load_learner('models/clean-res18.pkl', cpu=True)
 d = set()
 
-with open("categorized.csv", "r") as f:
+with open(categorized_file, "r") as f:
     reader = csv.reader(f)
     d = {rows[0]+ "-" + rows[1] for _, rows in enumerate(reader)}
     
@@ -40,7 +42,7 @@ def predictBatch(tst_files, output):
               label + ',' + str(percent) + "\n")
 
 
-with open("categorized.csv", "a") as f:
+with open(categorized_file, "a") as f:
     for i, line in enumerate(fileinput.input()):
         file = line.strip()
         id, parts = splitFileName(file)
