@@ -11,20 +11,23 @@ ERRORS := $(IMAGES)/errors
 DLERRORS := $(ERRORS)/download
 CONVERTEDRECORD := $(IMAGES)/converted-record.csv
 ERRORRECORD := $(IMAGES)/error-record.csv
+CATEGORIZED := $(IMAGES)/categorized.csv
 VALID500 := $(IMAGES)/500
-EXTERNAL := /Volumes/External/fungid
+EXTERNALOLD := /Volumes/External/fungidv2
+EXTERNALNEW := /Volumes/firecuda/fungid
 
 start-downloads: validate-downloads resize-images register-converted register-errors download
 
 download: 
-		duckdb $(DUCKDB) -cmd ".mode csv" ".separator '	'" ".headers off" "SELECT CAST(m.gbifid AS VARCHAR) || '-' || CAST(m.imgid AS VARCHAR) || '.' || format as filename, identifier \
-			FROM multimedia m \
-			LEFT JOIN converted c ON c.gbifid = m.gbifid AND c.imgid = m.imgid \
-			LEFT JOIN errors e ON e.gbifid = m.gbifid AND e.imgid = m.imgid \
-			WHERE c.gbifid IS NULL \
-			AND e.gbifid IS NULL;" \
+		duckdb $(DUCKDB) -cmd \
+			".mode csv" \
+			".separator '	'" \
+			".headers off" \
+			"SELECT CAST(m.gbifid AS VARCHAR) || '-' || CAST(m.imgid AS VARCHAR) || '.' || format as filename, identifier \
+				FROM imagestodownload m \
+				USING SAMPLE 1000;" \
 		| tr -d '\r' \
-		| xargs -P 32 -L1 bash -c 'echo "$$1 |"; wget --read-timeout=10 --connect-timeout=10 -c -nv --tries=2 $$1 -O $(DOWNLOADED)/$$0 || mv $(DOWNLOADED)/$$0 $(DLERRORS)`echo $$?`/$$0'
+		| xargs -P 32 -L1 bash -c 'wget --read-timeout=10 --connect-timeout=10 -c -nv --tries=2 $$1 -O $(DOWNLOADED)/$$0 || mv $(DOWNLOADED)/$$0 $(DLERRORS)`echo $$?`/$$0'
 
 validate-downloads:
 	-ls -f1 $(DOWNLOADED) | parallel "identify -regard-warnings $(DOWNLOADED)/{} > /dev/null && mv $(DOWNLOADED)/{} $(VALIDATED)/{} || mv $(DOWNLOADED)/{} $(ERRORS)/invalid/{}" 
@@ -33,52 +36,84 @@ resize-images:
 	-ls -f1 $(VALIDATED) |\
 		parallel -j16 "\
 			convert $(VALIDATED)/{} -resize '500x>' $(VALID500)/{.}.png \
-				&& mv $(VALIDATED)/{} $(CONVERTED)/"
+		&& mv $(VALIDATED)/{} $(CONVERTED)/"
 
 register-converted:
 	find $(CONVERTED) -type f | grep -o '[0-9]\+\-[0-9]\+' | tr '-' ',' >> $(CONVERTEDRECORD) \
 		&& sort $(CONVERTEDRECORD) | uniq > $(CONVERTEDRECORD).tmp && mv $(CONVERTEDRECORD).tmp $(CONVERTEDRECORD) \
-		&& duckdb $(DUCKDB) -cmd "DROP TABLE converted;" "CREATE TABLE converted (gbifid BIGINT, imgid INTEGER);" \
-		&& duckdb $(DUCKDB) "COPY converted FROM '$(CONVERTEDRECORD)';" \
-		&& duckdb $(DUCKDB) "SELECT COUNT(*) FROM converted;" \
+		&& duckdb $(DUCKDB) -cmd \
+			"DROP TABLE converted;" \
+			"CREATE TABLE converted (gbifid BIGINT, imgid INTEGER);" \
+			"COPY converted FROM '$(CONVERTEDRECORD)';" \
+			"SELECT COUNT(*) FROM converted;" \
 		&& mv $(CONVERTED) $(BACKUP)/`date +'%y-%m-%d-%H%M-%S'` \
 		&& mkdir $(CONVERTED)
 
 sync-external-hd:
-	find $(BACKUP) -type d -maxdepth 1 | parallel "mkdir -p $(EXTERNAL)/{}" \
-		&& find $(BACKUP) -type f -exec mv -v {} /Volumes/External/fungid/{} \;
+	find $(BACKUP) -type d -maxdepth 1 | parallel "mkdir -p $(EXTERNALNEW)/{}" \
+		&& find $(BACKUP)/22-05-13* -type f -exec mv -v {} $(EXTERNALNEW)/{} \;
 
+
+transfer-external-hd:
+	cd $(EXTERNALOLD) \
+		&& find $(BACKUP) -type d -maxdepth 1 -exec mkdir -p $(EXTERNALNEW)/{} \; \
+		&& find $(BACKUP)/22-05-13* -type f -exec mv -v {} $(EXTERNALNEW)/{} \;
+
+get-external-hd-files:
+	cd $(EXTERNALOLD) \
+		&& find $(BACKUP)/ -type f > extfile.txt
 
 register-errors:
 	find $(ERRORS) -type f | grep -o '[a-z0-9]\+\/[0-9]\+\-[0-9]\+' | tr '-' ',' | tr '/' ',' >> $(ERRORRECORD) \
 		&& sort $(ERRORRECORD) | uniq > $(ERRORRECORD).tmp && mv $(ERRORRECORD).tmp $(ERRORRECORD) \
 		&& find $(ERRORS) -type f -delete \
-		&& duckdb $(DUCKDB) -cmd "DROP TABLE errors;" "CREATE TABLE errors (errorCode VARCHAR, gbifid BIGINT, imgid INTEGER);" \
-		&& duckdb $(DUCKDB) "COPY errors FROM '$(ERRORRECORD)';" \
-		&& duckdb $(DUCKDB) "SELECT errorCode, COUNT(*) FROM errors GROUP BY 1;"		
-
-error-arctos:
-	duckdb $(DUCKDB) -cmd ".mode csv" ".separator '	'" ".headers off" "SELECT CAST(m.gbifid AS VARCHAR) || '-' || CAST(m.imgid AS VARCHAR) || '.' || format as filename \
-			FROM multimedia m \
-			WHERE identifier LIKE 'http://arctos.database.museum/media/%';" \
-		| parallel -d "\r\n" "touch $(ERRORS)/arctos/{}"
-
+		&& duckdb $(DUCKDB) -cmd \
+			"DROP TABLE errors;" \
+			"CREATE TABLE errors (errorCode VARCHAR, gbifid BIGINT, imgid INTEGER);" \
+			"COPY errors FROM '$(ERRORRECORD)';" \
+			"SELECT errorCode, COUNT(*) FROM errors GROUP BY 1;"		
 
 generate-samples:
 	mkdir -p $(CURRENTSAMPLE) \
-		&& duckdb $(DUCKDB) -cmd ".mode csv" ".separator '	'" ".headers off" "SELECT CAST(m.gbifid AS VARCHAR) || '-' || CAST(m.imgid AS VARCHAR) || '.png' \
-			FROM images m JOIN occurrence o on o.gbifid = m.gbifid WHERE o.institutioncode IN ('DUKE') USING SAMPLE 10000;" \
+		&& duckdb $(DUCKDB) -cmd \
+			".mode csv" \
+			".separator '	'" \
+			".headers off" \
+			"SELECT CAST(m.gbifid AS VARCHAR) || '-' || CAST(m.imgid AS VARCHAR) || '.png' \
+				FROM validimages m \
+				USING SAMPLE 10000;" \
 		| parallel -d "\r\n" "cp $(VALID500)/{} $(CURRENTSAMPLE)/{}"
 
+climate-zones:
+	mkdir -p $(CURRENTSAMPLE) \
+		&& duckdb $(DUCKDB) -cmd \
+			".mode csv" \
+			".separator ','" \
+			".headers off" \
+			"SELECT gbifid, decimallatitude, decimallongitude \
+			 FROM occurrence\
+			 WHERE gbifid NOT IN (SELECT gbifid FROM 'dbs/zones.csv') \
+			 ORDER BY gbifid;" \
+		| python climate-zones.py
+
 register-categorized:
-	duckdb $(DUCKDB) -cmd "DROP TABLE categorized;" "CREATE TABLE categorized (gbifid VARCHAR, gbifid BIGINT, imgid INTEGER);" \
-		&& duckdb $(DUCKDB) "COPY errors FROM '$(ERRORRECORD)';" \
-		&& duckdb $(DUCKDB) "SELECT errorCode, COUNT(*) FROM errors GROUP BY 1;"		
+	duckdb $(DUCKDB) -cmd \
+		"DROP TABLE categorized;" \
+		"CREATE TABLE categorized (gbifid BIGINT, imgid INTEGER, category VARCHAR, confidence FLOAT);" \
+		"COPY categorized FROM '$(CATEGORIZED)';" \
+		"SELECT category, COUNT(*) FROM categorized GROUP BY 1;"		
 
 generate-trainingimages:
-	duckdb $(DUCKDB) -cmd ".mode csv" ".headers off" "SELECT '$(VALID500)/' || t.gbifid || '-' || t.imgid || '.png' \
-		FROM trainingimages t  \
-		JOIN converted c ON t.gbifid = c.gbifid AND t.imgid = c.imgid" > trainingimages.txt
+	duckdb $(DUCKDB) -cmd \
+		".mode csv" \
+		".headers off" \
+		"SELECT '$(VALID500)/' || t.gbifid || '-' || t.imgid || '.png' \
+			FROM trainingimages t  \
+			JOIN converted c ON t.gbifid = c.gbifid AND t.imgid = c.imgid" \
+		> trainingimages.txt
+
+save-points:
+	duckdb $(DUCKDB) "COPY (SELECT gbifid, o.decimallatitude as lat, o.decimallongitude as long FROM validobservations o) TO 'points.csv' (HEADER, DELIMITER ',');"
 
 categorize:
 	find $(IMAGES)/224 -type f -name "*.png" | python clean.py
