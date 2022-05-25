@@ -13,7 +13,6 @@ CONVERTEDRECORD := $(IMAGES)/converted-record.csv
 ERRORRECORD := $(IMAGES)/error-record.csv
 CATEGORIZED := $(IMAGES)/categorized.csv
 VALID500 := $(IMAGES)/500
-EXTERNALOLD := /Volumes/External/fungidv2
 EXTERNALNEW := /Volumes/firecuda/fungid
 
 start-downloads: validate-downloads resize-images register-converted register-errors download
@@ -52,16 +51,6 @@ register-converted:
 sync-external-hd:
 	find $(BACKUP) -type d -maxdepth 1 | parallel "mkdir -p $(EXTERNALNEW)/{}" \
 		&& find $(BACKUP)/22-05-13* -type f -exec mv -v {} $(EXTERNALNEW)/{} \;
-
-
-transfer-external-hd:
-	cd $(EXTERNALOLD) \
-		&& find $(BACKUP) -type d -maxdepth 1 -exec mkdir -p $(EXTERNALNEW)/{} \; \
-		&& find $(BACKUP)/22-05-13* -type f -exec mv -v {} $(EXTERNALNEW)/{} \;
-
-get-external-hd-files:
-	cd $(EXTERNALOLD) \
-		&& find $(BACKUP)/ -type f > extfile.txt
 
 register-errors:
 	find $(ERRORS) -type f | grep -o '[a-z0-9]\+\/[0-9]\+\-[0-9]\+' | tr '-' ',' | tr '/' ',' >> $(ERRORRECORD) \
