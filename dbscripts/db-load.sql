@@ -6,6 +6,7 @@
 --DROP TABLE ignoredimages; 
 --CREATE TABLE ignoredimages (gbifid BIGINT, imgid INTEGER, reason VARCHAR);
 
+CREATE TABLE elu AS SELECT * FROM read_csv_auto('dbs/geospatial/globalelu/elu-values.csv', header=True);
 
 CREATE OR REPLACE VIEW images AS 
 SELECT m._type, m.format, m.identifier, m.imgid, o.* 
@@ -39,6 +40,9 @@ LEFT JOIN converted c ON c.gbifid = i.gbifid AND c.imgid = i.imgid
 WHERE c.gbifid IS NULL
 AND ii.gbifid IS NULL
 AND e.gbifid IS NULL;
+
+
+
 
 SELECT errorCode, COUNT(*) FROM errors GROUP BY 1;
 
