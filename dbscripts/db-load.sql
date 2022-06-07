@@ -100,9 +100,10 @@ JOIN (
 	GROUP BY 1,2,3
 	HAVING COUNT(*) > 100
 ) s ON r.familykey = s.familykey AND r.genuskey = s.genuskey AND r.specieskey = s.specieskey
-WHERE r.rank < 1000
+WHERE r.rank < 5000
 ORDER BY r.rank;
 
+COPY trainingimages TO 'records/training-images.csv' WITH (HEADER 1);
 
 SELECT COUNT(*), coordinateuncertaintyinmeters  
 FROM validobservations o
@@ -142,3 +143,4 @@ WHERE c.gbifid IS NULL
 SELECT COUNT(*)  FROM occurrence  where decimallongitude  IS NULL
 
 COPY (SELECT gbifid, o.decimallatitude, o.decimallongitude  FROM validobservations o) TO 'points.csv' (HEADER, DELIMITER ','); 
+
