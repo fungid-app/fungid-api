@@ -9,9 +9,8 @@ CURRENTSAMPLE := $(SAMPLES)/$(shell date +'%y-%m-%d-%H%M-%S')
 BACKUP := $(IMAGES)/backup
 ERRORS := $(IMAGES)/errors
 DLERRORS := $(ERRORS)/download
-CONVERTEDRECORD := $(IMAGES)/converted-record.csv
-ERRORRECORD := $(IMAGES)/error-record.csv
-CATEGORIZED := $(IMAGES)/categorized.csv
+CONVERTEDRECORD := records/converted-record.csv
+ERRORRECORD := records/error-record.csv
 VALID500 := $(IMAGES)/500
 EXTERNALNEW := /Volumes/firecuda/fungid
 
@@ -23,8 +22,7 @@ download:
 			".separator '	'" \
 			".headers off" \
 			"SELECT CAST(m.gbifid AS VARCHAR) || '-' || CAST(m.imgid AS VARCHAR) || '.' || format as filename, identifier \
-				FROM imagestodownload m \
-				USING SAMPLE 1000;" \
+				FROM imagestodownload m;" \
 		| tr -d '\r' \
 		| xargs -P 32 -L1 bash -c 'wget --read-timeout=10 --connect-timeout=10 -c -nv --tries=2 $$1 -O $(DOWNLOADED)/$$0 || mv $(DOWNLOADED)/$$0 $(DLERRORS)`echo $$?`/$$0'
 
@@ -85,13 +83,6 @@ climate-zones:
 			 ORDER BY gbifid;" \
 		| python climate-zones.py
 
-register-categorized:
-	duckdb $(DUCKDB) -cmd \
-		"DROP TABLE categorized;" \
-		"CREATE TABLE categorized (gbifid BIGINT, imgid INTEGER, category VARCHAR, confidence FLOAT);" \
-		"COPY categorized FROM '$(CATEGORIZED)';" \
-		"SELECT category, COUNT(*) FROM categorized GROUP BY 1;"		
-
 generate-trainingimages:
 	duckdb $(DUCKDB) -cmd \
 		".mode csv" \
@@ -103,12 +94,6 @@ generate-trainingimages:
 
 save-points:
 	duckdb $(DUCKDB) "COPY (SELECT gbifid, o.decimallatitude as lat, o.decimallongitude as long FROM validobservations o) TO 'points.csv' (HEADER, DELIMITER ',');"
-
-categorize:
-	find $(IMAGES)/224 -type f -name "*.png" | python clean.py
-
-pull-uncertain:
-	cat converted-categorized.txt | tr ',' '\t' | awk '{ if ($$3 < .50) { print $$1 }};' | tr -d '\r' | tr -d '█'| parallel cp {} uc/{}
 
 # Multimedia file conversion
 add-row-number:
@@ -126,3 +111,6 @@ replace-format:
 	sed -i '' 's#image/bmp#bmp#g' $(DBFOLDER)/multimedia-numbered.txt
 	sed -i '' 's/jpeg/jpg/g' $(DBFOLDER)/multimedia-numbered.txt
 
+# Jupyter Lab
+jupyter:
+	jupyter-lab --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' 

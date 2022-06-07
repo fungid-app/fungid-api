@@ -42,8 +42,6 @@ AND ii.gbifid IS NULL
 AND e.gbifid IS NULL;
 
 
-
-
 SELECT errorCode, COUNT(*) FROM errors GROUP BY 1;
 
 SELECT COUNT(*) FROM imagestodownload 
