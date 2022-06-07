@@ -9,8 +9,8 @@ CURRENTSAMPLE := $(SAMPLES)/$(shell date +'%y-%m-%d-%H%M-%S')
 BACKUP := $(IMAGES)/backup
 ERRORS := $(IMAGES)/errors
 DLERRORS := $(ERRORS)/download
-CONVERTEDRECORD := records/converted-record.csv
-ERRORRECORD := records/error-record.csv
+CONVERTEDRECORD := $(IMAGES)/converted-record.csv
+ERRORRECORD := $(IMAGES)/error-record.csv
 VALID500 := $(IMAGES)/500
 EXTERNALNEW := /Volumes/firecuda/fungid
 
