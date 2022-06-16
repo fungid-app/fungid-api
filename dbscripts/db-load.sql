@@ -1,7 +1,11 @@
 
---CREATE TABLE multimedia AS SELECT * FROM read_csv_auto('dbs/multimedia-numberedvd.txt', SEP='\t', header=True, normalize_names=True, quote='|', sample_size=300000);
+--CREATE OR REPLACE TABLE multimedia AS SELECT * FROM read_csv_auto('dbs/multimedia-numberedvd.txt', SEP='\t', header=True, normalize_names=True, quote='|', sample_size=300000);
 
---CREATE TABLE occurrence AS SELECT * FROM read_csv_auto('dbs/occurrence.txt', SEP='\t', header=True, normalize_names=True, quote='}', sample_size=3000000);
+--CREATE OR REPLACE TABLE occurrence AS SELECT * FROM read_csv_auto('dbs/occurrence.txt', SEP='\t', header=True, normalize_names=True, quote='}', sample_size=3000000);
+
+-- CREATE OR REPLACE TABLE geo_kg AS SELECT * FROM read_csv_auto('dbs/beck-kg-v1.csv', header=True, normalize_names=True);
+-- CREATE OR REPLACE TABLE geo_gelu AS SELECT * FROM read_csv_auto('dbs/globalelu.csv', header=True, normalize_names=True);
+-- CREATE OR REPLACE TABLE elu_values AS SELECT * FROM read_csv_auto('dbs/geospatial/globalelu/elu-values.csv', header=True, normalize_names=True);
 
 --DROP TABLE ignoredimages; 
 --CREATE TABLE ignoredimages (gbifid BIGINT, imgid INTEGER, reason VARCHAR);
@@ -28,7 +32,9 @@ CREATE OR REPLACE VIEW validimages AS
 SELECT i.*
 FROM images i
 JOIN validobservations v ON i.gbifid  = v.gbifid 
-JOIN converted c ON c.gbifid = i.gbifid AND c.imgid = i.imgid;
+LEFT JOIN ignoredimages ii ON ii.gbifid = i.gbifid AND i.imgid = ii.imgid 
+JOIN converted c ON c.gbifid = i.gbifid AND c.imgid = i.imgid
+WHERE ii.gbifid IS NULL;
 
 CREATE OR REPLACE VIEW imagestodownload AS
 SELECT i.*
@@ -54,10 +60,8 @@ DELETE FROM errors WHERE rowid IN (
 	AND c.errorCode  IN ('download8', 'arctos')
 )
 
-
-	
 CREATE OR REPLACE VIEW localobservations AS
-SELECT o.* 
+SELECT o.*  
 FROM validobservations o
 WHERE decimallatitude BETWEEN 49.8 AND 60.9
 AND decimallongitude BETWEEN -10.9 AND 1.8;
@@ -90,8 +94,7 @@ FROM (
 	) c ON o.imgid = c.imgid AND o.gbifid = c.gbifid
 ) r;
 
-
-CREATE OR REPLACE VIEW trainingimages AS 
+CREATE OR REPLACE VIEW speciestrainingimages AS 
 SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
 FROM rankedimages r 
 JOIN (
@@ -103,7 +106,48 @@ JOIN (
 WHERE r.rank < 5000
 ORDER BY r.rank;
 
-COPY trainingimages TO 'records/training-images.csv' WITH (HEADER 1);
+CREATE OR REPLACE VIEW genustrainingimages AS 
+SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
+FROM rankedimages r 
+JOIN (
+	SELECT o.familykey, o.genuskey
+	FROM rankedimages o 
+	GROUP BY 1,2
+	HAVING COUNT(*) > 100
+) s ON r.familykey = s.familykey AND r.genuskey = s.genuskey
+WHERE r.rank < 5000
+ORDER BY r.rank;
+
+CREATE OR REPLACE VIEW familytrainingimages AS 
+SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
+FROM rankedimages r 
+JOIN (
+	SELECT o.familykey
+	FROM rankedimages o 
+	GROUP BY 1
+	HAVING COUNT(*) > 100
+) s ON r.familykey = s.familykey
+WHERE r.rank < 5000
+ORDER BY r.rank;
+
+
+CREATE OR REPLACE VIEW trainingobservations AS
+SELECT o.gbifid, o."_family", o.genus, o.species,
+	o._year, o._month, o._day, o.eventdate, 
+	o.decimallatitude, o.decimallongitude, 
+	COALESCE(k.kg, -1) AS kg, COALESCE(g.elu, -1) AS elu,
+	v.class1 AS elu_class1, v.class2 AS elu_class2, v.class3 AS elu_class3, 
+FROM validobservations o
+LEFT JOIN geo_kg k ON o.gbifid = k.gbifid
+LEFT JOIN geo_gelu g ON o.gbifid = g.gbifid
+LEFT JOIN elu_values v ON g.elu = v.eluid
+JOIN (
+	SELECT specieskey
+	FROM speciestrainingimages
+	GROUP BY 1
+) s ON o.specieskey = s.specieskey;
+
+COPY trainingimages TO 'dbs/images/training-images.csv' WITH (HEADER 1);
 
 SELECT COUNT(*), coordinateuncertaintyinmeters  
 FROM validobservations o

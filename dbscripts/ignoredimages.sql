@@ -40,7 +40,7 @@ FROM categorized i
 LEFT JOIN ignoredimages ii ON ii.gbifid = i.gbifid AND i.imgid = ii.imgid 
 WHERE ii.gbifid IS NULL
 AND category = 'micros' 
-AND confidence > .90
+AND confidence > .75;
 
 INSERT INTO ignoredimages
 SELECT i.gbifid, i.imgid, 'sheets'
@@ -48,7 +48,7 @@ FROM categorized i
 LEFT JOIN ignoredimages ii ON ii.gbifid = i.gbifid AND i.imgid = ii.imgid 
 WHERE ii.gbifid IS NULL
 AND category = 'sheets' 
-AND confidence > .90
+AND confidence > .75;
 
 
 SELECT reason, COUNT(*) FROM ignoredimages GROUP BY 1
@@ -73,3 +73,47 @@ LEFT JOIN ignoredimages ii ON ii.gbifid = i.gbifid AND i.imgid = ii.imgid
 WHERE ii.gbifid IS NULL
 AND institutioncode  = 'Härryda kommun'
 ORDER BY 1
+
+
+
+INSERT INTO ignoredimages
+SELECT i.gbifid, i.imgid, 'sheets'
+FROM categorized i
+LEFT JOIN ignoredimages ii ON ii.gbifid = i.gbifid AND i.imgid = ii.imgid 
+LEFT JOIN 'tmp/valid.csv' v on i.gbifid = v.gbifid AND i.imgid = v.imgid
+WHERE ii.gbifid IS NULL
+AND v.gbifid IS NULL
+AND category = 'sheets';
+
+INSERT INTO ignoredimages
+SELECT i.gbifid, i.imgid, 'micros'
+FROM categorized i
+LEFT JOIN ignoredimages ii ON ii.gbifid = i.gbifid AND i.imgid = ii.imgid 
+LEFT JOIN 'tmp/valid.csv' v on i.gbifid = v.gbifid AND i.imgid = v.imgid
+WHERE ii.gbifid IS NULL
+AND v.gbifid IS NULL
+AND category = 'micros';
+
+
+                                                          
+-- DROP TABLE categorized; CREATE T.exABLE categorized(gbifid BIGINT, imgid INTEGER, category VARCHAR, confidence FLOAT);
+-- COPY categorized FROM 'dbs/images/categorized-ids.csv' (AUTO_DETECT TRUE) 
+SELECT reason, COUNT(*)
+FROM categorized c 
+JOIN ignoredimages ii on c.gbifid = ii.gbifid AND c.imgid = ii.imgid
+GROUP BY 1;
+
+COPY (
+	SELECT CAST(gbifid AS VARCHAR) || '-' || CAST(imgid AS VARCHAR) || '.png'
+	FROM categorized 
+	WHERE category IN ('sheets') 
+	ORDER BY confidence DESC
+) TO 'dbs/images/sheets.csv';
+
+
+COPY (
+	SELECT CAST(gbifid AS VARCHAR) || '-' || CAST(imgid AS VARCHAR) || '.png'
+	FROM categorized 
+	WHERE category IN ('micros') 
+	ORDER BY confidence DESC
+) TO 'dbs/images/micros.csv';

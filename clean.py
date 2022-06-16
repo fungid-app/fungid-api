@@ -6,13 +6,13 @@ import csv
 
 categorized_file = "dbs/images/categorized.csv"
 
-learn_inf = load_learner('models/clean-res18.pkl', cpu=True)
+learn_inf = load_learner('models/clean-res18.pkl')
 d = set()
 
 with open(categorized_file, "r") as f:
     reader = csv.reader(f)
-    d = {rows[0]+ "-" + rows[1] for _, rows in enumerate(reader)}
-    
+    d = {rows[0] + "-" + rows[1] for _, rows in enumerate(reader)}
+
 
 print("found {} categorized images".format(len(d)))
 
@@ -38,8 +38,8 @@ def predictBatch(tst_files, output):
         confidence = pred[decoded[i]]
         percent = float(confidence)
         label = learn_inf.dls.vocab[decoded[i]]
-        output.write( parts[0] + "," + parts[1] + ',' +
-              label + ',' + str(percent) + "\n")
+        output.write(parts[0] + "," + parts[1] + ',' +
+                     label + ',' + str(percent) + "\n")
 
 
 with open(categorized_file, "a") as f:
@@ -65,5 +65,3 @@ with open(categorized_file, "a") as f:
         predictBatch(batch, f)
         print("done")
         batch = []
-
- 

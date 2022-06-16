@@ -35,6 +35,11 @@ resize-images:
 			convert $(VALIDATED)/{} -resize '500x>' $(VALID500)/{.}.png \
 		&& mv $(VALIDATED)/{} $(CONVERTED)/"
 
+resize-to-prod:
+	comm -23 <(ls dbs/images/500) <(ls dbs/images/224) --check-order \
+		| awk '{print "dbs/images/500/" $0}' \
+		| python3 resize.py
+
 register-converted:
 	find $(CONVERTED) -type f | grep -o '[0-9]\+\-[0-9]\+' | tr '-' ',' >> $(CONVERTEDRECORD) \
 		&& sort $(CONVERTEDRECORD) | uniq > $(CONVERTEDRECORD).tmp && mv $(CONVERTEDRECORD).tmp $(CONVERTEDRECORD) \
@@ -83,17 +88,16 @@ climate-zones:
 			 ORDER BY gbifid;" \
 		| python climate-zones.py
 
-generate-trainingimages:
-	duckdb $(DUCKDB) -cmd \
-		".mode csv" \
-		".headers off" \
-		"SELECT '$(VALID500)/' || t.gbifid || '-' || t.imgid || '.png' \
-			FROM trainingimages t  \
-			JOIN converted c ON t.gbifid = c.gbifid AND t.imgid = c.imgid" \
-		> trainingimages.txt
+generate-training-data: generate-training-images generate-training-observations
 
+generate-training-images:
+	duckdb $(DUCKDB) "COPY speciestrainingimages TO 'training/training-images.csv' WITH (HEADER 1);"
+		
+generate-training-observations:
+	duckdb $(DUCKDB) "COPY trainingobservations TO 'training/training-observations.csv' WITH (HEADER 1);"
+		
 save-points:
-	duckdb $(DUCKDB) "COPY (SELECT gbifid, o.decimallatitude as lat, o.decimallongitude as long FROM validobservations o) TO 'points.csv' (HEADER, DELIMITER ',');"
+	duckdb $(DUCKDB) "COPY (SELECT gbifid, o.decimallatitude as lat, o.decimallongitude as long FROM validobservations o) TO 'training/points.csv' (HEADER, DELIMITER ',');"
 
 # Multimedia file conversion
 add-row-number:
