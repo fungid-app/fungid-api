@@ -1,5 +1,6 @@
 DBFOLDER := dbs
 DUCKDB := $(DBFOLDER)/fungid.ddb
+SQLITEDB := $(DBFOLDER)/fungid.sqlite
 IMAGES := $(DBFOLDER)/images
 DOWNLOADED := $(IMAGES)/downloaded
 VALIDATED := $(IMAGES)/validated
@@ -88,14 +89,13 @@ climate-zones:
 			 ORDER BY gbifid;" \
 		| python climate-zones.py
 
-generate-training-data: generate-training-images generate-training-observations
+generate-training-data-old:
+	duckdb $(DUCKDB) "COPY trainingdata TO 'dbs/training/training-data-v0-2.csv' WITH (HEADER 1, DeLIMITER '	');"
+		
 
-generate-training-images:
-	duckdb $(DUCKDB) "COPY speciestrainingimages TO 'training/training-images.csv' WITH (HEADER 1);"
-		
-generate-training-observations:
-	duckdb $(DUCKDB) "COPY trainingobservations TO 'training/training-observations.csv' WITH (HEADER 1);"
-		
+generate-training-data:
+	sqlite3 $(SQLITEDB) --cmd ".headers on" ".mode csv" ".once dbs/training/training-data-v0-3.csv" "SELECT * FROM trainingdata;"
+
 save-points:
 	duckdb $(DUCKDB) "COPY (SELECT gbifid, o.decimallatitude as lat, o.decimallongitude as long FROM validobservations o) TO 'training/points.csv' (HEADER, DELIMITER ',');"
 
@@ -114,6 +114,11 @@ replace-format:
 	sed -i '' 's#image/tiff#tiff#g' $(DBFOLDER)/multimedia-numbered.txt
 	sed -i '' 's#image/bmp#bmp#g' $(DBFOLDER)/multimedia-numbered.txt
 	sed -i '' 's/jpeg/jpg/g' $(DBFOLDER)/multimedia-numbered.txt
+
+load-sqlite:
+	sqlite3 $(SQLITEDB) < sqlite/tables.sql 
+	sqlite3 $(SQLITEDB) < sqlite/views.sql
+	sqlite3 $(SQLITEDB) < sqlite/indexes.sql
 
 # Jupyter Lab
 jupyter:

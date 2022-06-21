@@ -94,7 +94,7 @@ FROM (
 	) c ON o.imgid = c.imgid AND o.gbifid = c.gbifid
 ) r;
 
-CREATE OR REPLACE VIEW speciestrainingimages AS 
+CREATE OR REPLACE VIEW trainingimages AS 
 SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
 FROM rankedimages r 
 JOIN (
@@ -106,46 +106,43 @@ JOIN (
 WHERE r.rank < 5000
 ORDER BY r.rank;
 
-CREATE OR REPLACE VIEW genustrainingimages AS 
-SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
-FROM rankedimages r 
-JOIN (
-	SELECT o.familykey, o.genuskey
-	FROM rankedimages o 
-	GROUP BY 1,2
-	HAVING COUNT(*) > 100
-) s ON r.familykey = s.familykey AND r.genuskey = s.genuskey
-WHERE r.rank < 5000
-ORDER BY r.rank;
+DROP VIEW speciestrainingimages;
+DROP VIEW familytrainingimages;
+DROP VIEW trainingobservations;
+DROP VIEW genustrainingimages;
 
-CREATE OR REPLACE VIEW familytrainingimages AS 
-SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
-FROM rankedimages r 
-JOIN (
-	SELECT o.familykey
-	FROM rankedimages o 
-	GROUP BY 1
-	HAVING COUNT(*) > 100
-) s ON r.familykey = s.familykey
-WHERE r.rank < 5000
-ORDER BY r.rank;
+CREATE OR REPLACE VIEW trainingdata AS
+SELECT *, 
+	CASE 
+		WHEN normalized_month < 3 OR normalized_month > 11 THEN 'winter'
+		WHEN normalized_month BETWEEN 3 AND 5 THEN 'spring'
+		WHEN normalized_month BETWEEN 6 AND 8 THEN 'summer'
+		ELSE 'autumn'
+	END AS season
+FROM (
+	SELECT o.gbifid, o."_family", o.genus, o.species,
+		datepart('year', eventdate) as eventyear, 
+		datepart('month', eventdate) as eventmonth, 
+		datepart('day', eventdate) as eventday, 
+		o.eventdate, 
+		o.decimallatitude, o.decimallongitude, 
+		COALESCE(k.kg, 0) AS kg, COALESCE(g.elu, 0) AS elu,
+		v.class1 AS elu_class1, v.class2 AS elu_class2, v.class3 AS elu_class3, 
+		((datepart('month', eventdate) + CASE WHEN decimallatitude < 0 THEN 6 ELSE 0 END) % 12) + 1 AS normalized_month,
+		st.imgid
+	FROM validobservations o
+	LEFT JOIN geo_kg k ON o.gbifid = k.gbifid
+	LEFT JOIN geo_gelu g ON o.gbifid = g.gbifid
+	LEFT JOIN elu_values v ON g.elu = v.eluid
+	JOIN (
+		SELECT specieskey
+		FROM trainingimages
+		GROUP BY 1
+	) s ON o.specieskey = s.specieskey
+	LEFT JOIN trainingimages st ON o.gbifid = st.gbifid
+) a;
 
-
-CREATE OR REPLACE VIEW trainingobservations AS
-SELECT o.gbifid, o."_family", o.genus, o.species,
-	o._year, o._month, o._day, o.eventdate, 
-	o.decimallatitude, o.decimallongitude, 
-	COALESCE(k.kg, -1) AS kg, COALESCE(g.elu, -1) AS elu,
-	v.class1 AS elu_class1, v.class2 AS elu_class2, v.class3 AS elu_class3, 
-FROM validobservations o
-LEFT JOIN geo_kg k ON o.gbifid = k.gbifid
-LEFT JOIN geo_gelu g ON o.gbifid = g.gbifid
-LEFT JOIN elu_values v ON g.elu = v.eluid
-JOIN (
-	SELECT specieskey
-	FROM speciestrainingimages
-	GROUP BY 1
-) s ON o.specieskey = s.specieskey;
+SELECT season, normalized_month, COUNT(*) FROM trainingobservations GROUP BY 1,2;
 
 COPY trainingimages TO 'dbs/images/training-images.csv' WITH (HEADER 1);
 
