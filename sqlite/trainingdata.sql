@@ -138,3 +138,4 @@ AND (
 	OR (stat = 'normalizedmonth' AND value = ?)
 	OR (stat = 'season' AND value = ?)
 )
+
