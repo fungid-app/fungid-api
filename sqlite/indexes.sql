@@ -10,4 +10,3 @@ CREATE UNIQUE INDEX IF NOT EXISTS observations_gbifid ON observations(gbifid);
 CREATE INDEX IF NOT EXISTS observations_latitude_longitutde ON observations(decimallatitude, decimallongitude);
 CREATE INDEX IF NOT EXISTS observations_family_genus_species ON observations(familykey, genuskey, specieskey);
 CREATE INDEX IF NOT EXISTS observations_specieskey ON observations(specieskey);
-CREATE UNIQUE INDEX IF NOT EXISTS trainingspecies_version_specieskey ON trainingspecies(version, specieskey);

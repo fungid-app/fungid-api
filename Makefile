@@ -91,10 +91,9 @@ climate-zones:
 
 generate-training-data-old:
 	duckdb $(DUCKDB) "COPY trainingdata TO 'dbs/training/training-data-v0-2.csv' WITH (HEADER 1, DeLIMITER '	');"
-		
 
 generate-training-data:
-	sqlite3 $(SQLITEDB) --cmd ".headers on" ".mode csv" ".once dbs/training/training-data-v0-3.csv" "SELECT * FROM trainingdata;"
+	sqlite3 $(SQLITEDB) --cmd ".headers on" ".mode csv" ".once dbs/training/training-data-v0-4.csv" "SELECT * FROM trainingdata;"
 
 save-points:
 	duckdb $(DUCKDB) "COPY (SELECT gbifid, o.decimallatitude as lat, o.decimallongitude as long FROM validobservations o) TO 'training/points.csv' (HEADER, DELIMITER ',');"

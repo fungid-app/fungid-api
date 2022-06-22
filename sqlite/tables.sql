@@ -21,7 +21,6 @@ CREATE TABLE observations(gbifid BIGINT,eventdate TIMESTAMP, decimallatitude DOU
 CREATE TABLE geo_kg(gbifid BIGINT, kg INTEGER);
 CREATE TABLE geo_gelu(gbifid BIGINT, elu INTEGER);
 CREATE TABLE elu_values(eluid INTEGER, count INTEGER, red INTEGER, green INTEGER, blue INTEGER, class1 VARCHAR COLLATE NOCASE, class2 VARCHAR COLLATE NOCASE, class3 VARCHAR COLLATE NOCASE);
-CREATE TABLE trainingspecies(specieskey INTEGER, version FLOAT);
 
 .mode csv
 .import 'dbs/db-backup/elu.csv' elu
@@ -50,5 +49,4 @@ SELECT gbifid, NULLIF(eventdate, ''), NULLIF(decimallatitude, ''), NULLIF(decima
 FROM occurrence;
 SELECT COUNT(*) FROM observations;
 DROP TABLE occurrence;
-
 
