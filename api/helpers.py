@@ -1,7 +1,9 @@
+import imp
 from fastai.data.external import *
 from fastbook import *
 from fastai.data.external import *
 import torch.nn.functional as F
+from .observation import Observation
 
 
 def get_x(a):
@@ -130,3 +132,13 @@ def get_db_species(conn, observation, dist):
                           (p1[0], p2[0], p1[1], p2[1]))
     results = cursor.fetchall()
     print(len(results))
+
+
+def obs_from_series(series: pd.Series) -> Observation:
+    image = PILImage.create(series.img)
+    if image is None:
+        raise Exception("Could not load image: ", series.img)
+
+    date = datetime.strptime(series.eventdate, '%Y-%m-%d %H:%M:%S')
+    return Observation(image, series.decimallatitude, series.decimallongitude,
+                       date, series.kg, series.elu_class1, series.elu_class2, series.elu_class3)

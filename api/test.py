@@ -12,13 +12,15 @@ from helpers import *
 from datetime import datetime
 
 
-def get_observation() -> Observation:
+def get_image() -> vs.PILImage:
     image = vs.PILImage.create("dbs/images/224/2593822195-1.png")
-
     if image is None:
         raise Exception("Image not found")
+    return image
 
-    return Observation(image, 52.905696, -1.225849, datetime.now(), kg=1,
+
+def get_observation() -> Observation:
+    return Observation(get_image(), 52.905696, -1.225849, datetime.now(), kg=1,
                        elu_class1="Artificial or Urban Area", elu_class2=None, elu_class3=None)
 
 
@@ -36,10 +38,7 @@ def get_tab_model() -> TabModel:
     if sqlite is None:
         raise Exception("SQLITE_PATH must be set")
 
-    with sqlite3.connect(sqlite) as con:
-        return TabModel(con)
-
-    raise Exception("Tab model not found")
+    return TabModel(sqlite)
 
 
 def get_integrated_classifier():
@@ -57,7 +56,7 @@ def test_observation_factory():
 
     observation_factory = ObservationFactory(
         gr.KGRaster(kgpath), gr.EluRaster(elupath))
-    observation = observation_factory.make_observation(52.905696, -1.225849, date=datetime.datetime(
+    observation = observation_factory.make_observation(get_image(), 52.905696, -1.225849, date=datetime(
         year=2020, month=1, day=1))
     print(observation.full_observation())
 

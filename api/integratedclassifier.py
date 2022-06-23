@@ -1,11 +1,11 @@
-from observation import Observation
-import imageclassifier as ic
-import tab_model as tm
+from .observation import Observation
+from .imageclassifier import ImageClassifier
+from .tab_model import TabModel
 import pandas as pd
 
 
 class IntegratedClassifier:
-    def __init__(self, image_classifier: ic.ImageClassifier, tab_model: tm.TabModel):
+    def __init__(self, image_classifier: ImageClassifier, tab_model: TabModel):
         self.image_classifier = image_classifier
         self.tab_model = tab_model
 
