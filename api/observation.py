@@ -1,5 +1,4 @@
 from typing import Optional
-import georaster as gr
 import datetime
 import pandas as pd
 import fastai.vision.core as vs
