@@ -64,8 +64,8 @@ class GeoRaster:
 
 
 class KGRaster:
-    def __init__(self):
-        self.raster_path = 'dbs/geospatial/Beck_KG_V1/Beck_KG_V1_present_0p0083.tif'
+    def __init__(self, filename: str):
+        self.raster_path = filename
         self.raster = GeoRaster(self.raster_path)
 
     def get_value(self, lat: float, long: float):
@@ -73,8 +73,8 @@ class KGRaster:
 
 
 class EluRaster:
-    def __init__(self):
-        self.raster_path = 'dbs/geospatial/globalelu/World_ELU_2015.tif'
+    def __init__(self, filename: str):
+        self.raster_path = filename
         self.raster = GeoRaster(self.raster_path)
 
     def get_classes(self, lat: float, long: float) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -89,7 +89,13 @@ class EluRaster:
 
 
 if __name__ == "__main__":
-    raster = KGRaster()
+    import os
+    kgpath = os.getenv("KG_RASTER_PATH")
+    elupath = os.getenv("ELU_RASTER_PATH")
+    if kgpath is None or elupath is None:
+        raise Exception("KG_RASTER_PATH and ELU_RASTER_PATH must be set")
+
+    raster = KGRaster(kgpath)
     print(raster.get_value(52.905696, -1.225849))
-    raster = EluRaster()
+    raster = EluRaster(elupath)
     print(raster.get_classes(52.905696, -1.225849))
