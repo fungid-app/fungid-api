@@ -4,6 +4,14 @@ from fastai.data.external import *
 import torch.nn.functional as F
 
 
+def get_x(a):
+    return a[0]
+
+
+def get_y(a):
+    return a[1]
+
+
 def accuracy_species(inp, targ, axis=-1):
     pred, targ = flatten_check(inp.argmax(dim=axis), targ)
     return (pred == targ).float().mean()
