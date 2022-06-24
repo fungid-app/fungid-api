@@ -20,9 +20,9 @@ WHERE ii.gbifid IS NULL;
 DROP VIEW IF EXISTS rankedimages;
 CREATE VIEW rankedimages AS 
 SELECT r.*, 
-	ROW_NUMBER() OVER (PARTITION BY familykey, genuskey, specieskey ORDER BY imgid, gbifid DESC) as rank
+	ROW_NUMBER() OVER (PARTITION BY specieskey ORDER BY imgid, gbifid DESC) as rank
 FROM (
-	SELECT o.gbifid, o.imgid, o."_family", o.genus, o.species, o.familykey, o.genuskey, o.specieskey
+	SELECT o.gbifid, o.imgid, o.specieskey
 	FROM validimages o
 ) r;
 

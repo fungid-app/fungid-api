@@ -1,8 +1,8 @@
 DROP TABLE IF EXISTS trainingimages;
-CREATE TABLE trainingimages(gbifid BIGINT, imgid INTEGER, "_family" VARCHAR COLLATE NOCASE, genus VARCHAR COLLATE NOCASE, species VARCHAR COLLATE NOCASE, familykey INTEGER, genuskey INTEGER, specieskey INTEGER, rank INTEGER);
+CREATE TABLE trainingimages(gbifid BIGINT, imgid INTEGER, specieskey INTEGER, rank INTEGER);
 
-INSERT INTO trainingimages(gbifid, imgid, "_family", genus, species, familykey, genuskey, specieskey, rank)
-SELECT r.gbifid, r.imgid, r."_family", r.genus, r.species, r.familykey, r.genuskey, r.specieskey, r.rank
+INSERT INTO trainingimages(gbifid, imgid, specieskey, rank)
+SELECT r.gbifid, r.imgid, r.specieskey, r.rank
 FROM rankedimages r 
 JOIN (
 	SELECT o.specieskey
@@ -17,14 +17,20 @@ ORDER BY r.rank;
 
 DROP TABLE trainingspecies;
 CREATE TABLE trainingspecies("_family" VARCHAR COLLATE NOCASE, genus VARCHAR COLLATE NOCASE, species VARCHAR COLLATE NOCASE, 
-	familykey INTEGER, genuskey INTEGER, specieskey INTEGER PRIMARY KEY);
-INSERT INTO trainingspecies ("_family", genus, species, familykey, genuskey, specieskey)
-SELECT "_family", genus, species, familykey, genuskey, specieskey 
-FROM trainingimages o
+	familykey INTEGER, genuskey INTEGER, specieskey INTEGER, total INTEGER, PRIMARY KEY(specieskey, species, total));
+INSERT INTO trainingspecies ("_family", genus, species, familykey, genuskey, specieskey, total)
+SELECT v."_family", v.genus, v.species, v.familykey, v.genuskey, v.specieskey, COUNT(DISTINCT v.gbifid)
+FROM (
+	SELECT specieskey
+	FROM trainingimages o
+	GROUP BY 1
+) i
+JOIN validobservations v ON i.specieskey = v.specieskey
 -- Note: with this we are dropping otu ~ 15 qualified species because they have no "family"
 WHERE familykey IS NOT NULL 
 AND genuskey IS NOT NULL
 GROUP BY 1,2,3,4,5,6;
+
 
 
 DROP TABLE IF EXISTS trainingobservations;
@@ -127,18 +133,3 @@ JOIN (
 ) ss ON s.species = ss.species AND s.stat = ss.stat;
 
 
-SELECT s.species, s.stat, s.value, s.likelihood 
-FROM speciesstats s 
-WHERE species = ?
-AND (
-	(stat = 'kg' AND value = ?)
-	OR (stat = 'elu_class1' AND value = ?)
-	OR (stat = 'elu_class2' AND value = ?)
-	OR (stat = 'elu_class3' AND value = ?)
-	OR (stat = 'normalizedmonth' AND value = ?)
-	OR (stat = 'season' AND value = ?)
-)
-
-SELECT * FROM elu_values ev LIMIT 1
-
-SELECT class1, class2, class3 FROM elu_values WHERE eluid = 222

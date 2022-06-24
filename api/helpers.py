@@ -134,11 +134,11 @@ def get_db_species(conn, observation, dist):
     print(len(results))
 
 
-def obs_from_series(series: pd.Series) -> Observation:
-    image = PILImage.create(series.img)
-    if image is None:
+def obs_from_series(series: pd.Series, image_locs: list[str]) -> Observation:
+    images = [PILImage.create(img) for img in image_locs]
+    if images is None:
         raise Exception("Could not load image: ", series.img)
 
     date = datetime.strptime(series.eventdate, '%Y-%m-%d %H:%M:%S')
-    return Observation(image, series.decimallatitude, series.decimallongitude,
+    return Observation(images, series.decimallatitude, series.decimallongitude,
                        date, series.kg, series.elu_class1, series.elu_class2, series.elu_class3)
