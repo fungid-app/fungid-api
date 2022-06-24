@@ -10,12 +10,12 @@ class ImageClassifier:
         self.vocab = pd.DataFrame(self.learner.dls.vocab, columns=[
                                   "species"]).set_index("species")
 
-    def get_predictions(self, image: vs.PILImage) -> pd.DataFrame:
+    def get_predictions(self, image: vs.PILImage) -> pd.Series:
         resized = self.resize(image)
         _, _, probs = self.learner.predict(resized)
         val = self.vocab.copy()
         val["img_prob"] = probs
-        return val
+        return val.img_prob
 
 
 if __name__ == "__main__":

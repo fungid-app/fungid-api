@@ -30,7 +30,7 @@ class Observation:
         elif normalizedmonth in [6, 7, 8]:
             return "summer"
         else:
-            return "fall"
+            return "autumn"
 
     def full_observation(self) -> pd.Series:
         return pd.Series({

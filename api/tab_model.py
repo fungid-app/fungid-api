@@ -9,7 +9,7 @@ class TabModel():
     def __init__(self, connection_string: str):
         self.species_stats = get_species_stats(connection_string)
 
-    def get_predictions(self, observation: Observation) -> pd.DataFrame:
+    def get_predictions(self, observation: Observation) -> pd.Series:
         stats = pd.concat([
             self.species_stats.loc[('kg', str(observation.kg))],
             self.species_stats.loc[('elu_class1', observation.elu_class1)],
@@ -19,11 +19,7 @@ class TabModel():
                                     str(observation.normalized_month()))],
             self.species_stats.loc[('season', observation.season())]
         ]).groupby('species').sum()
-        return stats
-
-    def get_tensor(self, observation) -> Tensor:
-        stats = self.get_predictions(observation)
-        return tensor(stats['likelihood'].values)
+        return stats.likelihood
 
 
 def get_species_stats(connection_string: str) -> pd.DataFrame:
