@@ -19,7 +19,10 @@ class TabModel():
                                     str(observation.normalized_month()))],
             self.species_stats.loc[('season', observation.season())]
         ]).groupby('species').sum()
-        return stats.likelihood
+
+        max_val = stats.likelihood.max()
+        return (stats.likelihood + max_val) / (max_val * 2)
+        # return stats.likelihood / max_val
 
 
 def get_species_stats(connection_string: str) -> pd.DataFrame:

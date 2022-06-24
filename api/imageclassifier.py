@@ -1,6 +1,9 @@
+from numpy import integer
+from pandas import DataFrame
 from .helpers import *
 import fastbook
 import fastai.vision.core as vs
+from typing import Tuple, Union
 
 
 class ImageClassifier:
@@ -10,12 +13,19 @@ class ImageClassifier:
         self.vocab = pd.DataFrame(self.learner.dls.vocab, columns=[
                                   "species"]).set_index("species")
 
-    def get_predictions(self, image: vs.PILImage) -> pd.Series:
+    def get_predictions(self, images: list[vs.PILImage]) -> Tuple[pd.Series, pd.DataFrame]:
+        df = pd.DataFrame(
+            pd.concat([self._get_prediction(image, str(i))
+                      for i, image in enumerate(images)], axis=1)
+        )
+        return df.mean(axis=1), df  # type: ignore
+
+    def _get_prediction(self, image: vs.PILImage, idx: str) -> pd.Series:
         resized = self.resize(image)
         _, _, probs = self.learner.predict(resized)
         val = self.vocab.copy()
-        val["img_prob"] = probs
-        return val.img_prob
+        val[idx] = probs
+        return val[idx]
 
 
 if __name__ == "__main__":
@@ -28,5 +38,5 @@ if __name__ == "__main__":
         if image is None:
             raise Exception("Image not found")
 
-        preds = image_classifier.get_predictions(image)
+        preds = image_classifier.get_predictions([image])
         print(preds)
