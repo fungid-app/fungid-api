@@ -17,18 +17,20 @@ from core.observation_factory import ObservationFactory
 from core.helpers import *
 
 disk = '/var/data/'
-model_file_name = disk + 'image-model.pkl'
-kg_file_name = disk + 'kg.tif'
-elu_file_name = disk + 'elu.tif'
-db_file_name = disk + 'db.sqlite'
+download_url = "https://nyc3.digitaloceanspaces.com/inciteful/fungid/v0.4/"
+model_file_name = 'image-model.pkl'
+kg_file_name = 'kg.tif'
+elu_file_name = 'elu.tif'
+db_file_name = 'db.sqlite'
 
 to_download_files = [
-    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', model_file_name),
-    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', kg_file_name),
-    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', elu_file_name),
-    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', db_file_name),
+    model_file_name,
+    kg_file_name,
+    elu_file_name,
+    db_file_name,
 ]
 
+to_download_files = [(download_url + f, disk + f) for f in to_download_files]
 
 classes = ['black', 'grizzly', 'teddys']
 
@@ -58,9 +60,10 @@ for file in to_download_files:
 
 loop.close()
 
-classifier = IntegratedClassifier(model_file_name, db_file_name, cpu=True)
+classifier = IntegratedClassifier(
+    disk + model_file_name, disk + db_file_name, cpu=True)
 obs_factory = ObservationFactory(
-    KGRaster(kg_file_name), EluRaster(elu_file_name, db_file_name))
+    KGRaster(disk + kg_file_name), EluRaster(disk + elu_file_name, disk + db_file_name))
 
 
 async def parse_images_from_request(form_data):
