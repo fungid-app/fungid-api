@@ -36,16 +36,21 @@ RUN ./configure --with-python --with-pg --with-geos &&\
     make install && \
     ldconfig
 
+WORKDIR /
+
+RUN rm -rf gdal-3.4.0  &&\
+    rm -rf proj-8.2.1 &&\
+    rm gdal-3.4.0.tar.gz
+    
 COPY requirements.txt .
 
 RUN pip install --upgrade -r requirements.txt
 
-WORKDIR /
-
 COPY app app/
-COPY core core/
 
-RUN python app/server.py
+RUN mkdir /var/data
+
+# RUN python app/server.py
 
 EXPOSE 5000
 

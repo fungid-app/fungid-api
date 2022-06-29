@@ -1,18 +1,34 @@
 import aiohttp
 import asyncio
 import uvicorn
+import sys
+from datetime import datetime
+from pathlib import Path
 from fastai import *
-from fastai.vision import *
+from fastai.vision.core import *
 from fastai.vision.utils import *
 from io import BytesIO
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import HTMLResponse, JSONResponse
-from starlette.staticfiles import StaticFiles
-from api.core.imageclassifier import ImageClassifier
+from starlette.responses import JSONResponse
+from core.integratedclassifier import IntegratedClassifier
+from core.georaster import KGRaster, EluRaster
+from core.observation_factory import ObservationFactory
+from core.helpers import *
 
-model_file_url = 'https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1'
-export_file_name = './export.pkl'
+disk = '/var/data/'
+model_file_name = disk + 'image-model.pkl'
+kg_file_name = disk + 'kg.tif'
+elu_file_name = disk + 'elu.tif'
+db_file_name = disk + 'db.sqlite'
+
+to_download_files = [
+    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', model_file_name),
+    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', kg_file_name),
+    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', elu_file_name),
+    ('https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1', db_file_name),
+]
+
 
 classes = ['black', 'grizzly', 'teddys']
 
@@ -22,8 +38,12 @@ app.add_middleware(CORSMiddleware, allow_origins=[
 
 
 async def download_file(url, dest):
+    dest = Path(dest)
     if dest.exists():
+        print("found: ", dest)
         return
+
+    print("downloading: ", dest)
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             data = await response.read()
@@ -31,33 +51,44 @@ async def download_file(url, dest):
                 f.write(data)
 
 
-async def setup_learner():
-    await download_file(export_file_url, export_file_name)
-    try:
-        learn = ImageClassifier(export_file_name)
-        return learn
-    except RuntimeError as e:
-        if len(e.args) > 0 and 'CPU-only machine' in e.args[0]:
-            print(e)
-            message = "\n\nThis model was trained with an old version of fastai and will not work in a CPU environment.\n\nPlease update the fastai library in your training environment and export your model again.\n\nSee instructions for 'Returning to work' at https://course.fast.ai."
-            raise RuntimeError(message)
-        else:
-            raise
-
-
 loop = asyncio.get_event_loop()
-tasks = [asyncio.ensure_future(setup_learner())]
-learn = loop.run_until_complete(asyncio.gather(*tasks))[0]
+
+for file in to_download_files:
+    loop.run_until_complete(download_file(file[0], file[1]))
+
 loop.close()
 
+classifier = IntegratedClassifier(model_file_name, db_file_name, cpu=True)
+obs_factory = ObservationFactory(
+    KGRaster(kg_file_name), EluRaster(elu_file_name, db_file_name))
 
-@app.route('/analyze', methods=['POST'])
+
+async def parse_images_from_request(form_data):
+    images = []
+    for i in range(0, 100):
+        form_name = 'image' + str(i)
+        try:
+            img_bytes = await (form_data[form_name].read())
+            img = PILImage.create(BytesIO(img_bytes))
+            images.append(img)
+        except:
+            break
+
+    return images
+
+
+@ app.route('/analyze', methods=['POST'])
 async def analyze(request):
-    img_data = await request.form()
-    img_bytes = await (img_data['file'].read())
-    img = PILImage.create(BytesIO(img_bytes))
-    prediction = learn.predict(img)[0]
-    return JSONResponse({'result': str(prediction)})
+    form_data = await request.form()
+    images = await parse_images_from_request(form_data)
+    date = form_data['date']
+    lat = float(form_data['lat'])
+    lon = float(form_data['lon'])
+    date = datetime.strptime(date, '%Y-%m-%d')
+    obs = obs_factory.create(images, lat, lon, date)
+    results = classifier.get_all_predictions(obs).to_json()
+
+    return JSONResponse(results)
 
 
 if __name__ == '__main__':

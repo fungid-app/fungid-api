@@ -9,7 +9,7 @@ class ObservationFactory:
         self.kgraster = kgraster
         self.eluraster = eluraster
 
-    def make_observation(self, images: list[vs.PILImage], lat: float, long: float, date: datetime.datetime) -> Observation:
+    def create(self, images: list[vs.PILImage], lat: float, long: float, date: datetime.datetime) -> Observation:
         kg = self.kgraster.get_value(lat, long)
         elu_class1, elu_class2, elu_class3 = self.eluraster.get_classes(
             lat, long)
