@@ -11,5 +11,3 @@ CREATE INDEX IF NOT EXISTS observations_specieskey_latitude_longitutde ON observ
 CREATE INDEX IF NOT EXISTS observations_family_genus_species ON observations(familykey, genuskey, specieskey);
 CREATE INDEX IF NOT EXISTS observations_specieskey ON observations(specieskey);
 
-DROP INDEX IF EXISTS observations_latitude_longitutde;
-

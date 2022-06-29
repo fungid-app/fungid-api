@@ -9,6 +9,9 @@ class LocationModel():
     def __init__(self, connection_string: str):
         self.connection_string = connection_string
 
+    def find_local(self, lat: float, long: float) -> pd.Series:
+        return self.get_predictions(lat, long).index
+
     def get_predictions(self, lat: float, long: float) -> pd.DataFrame:
         species_stats = None
         with sqlite3.connect(self.connection_string) as con:
@@ -31,7 +34,7 @@ def _get_db_species(con,  lat: float, long: float, dist: int) -> pd.DataFrame:
     return pd.read_sql_query("""SELECT t.species, SUM(t.total) AS total, COUNT(*) as local--,
                                     --MIN(ABS(decimallatitude - ?)) AS close_lat,
                                     --MIN(ABS(decimallongitude - ?)) AS close_long
-                                FROM trainingspecies t
+                                FROM species t
                                 JOIN observations v ON v.specieskey = t.specieskey
                                 WHERE decimallatitude BETWEEN ? AND ?
                                 AND decimallongitude BETWEEN ? AND ?
@@ -42,5 +45,4 @@ def _get_db_species(con,  lat: float, long: float, dist: int) -> pd.DataFrame:
 def _get_bounding_box(lat, lon, dist):
     latdiff = (180 / math.pi) * (dist / 6378)
     londiff = abs((180 / math.pi) * (dist / 6378) / math.cos(lat))
-    print(latdiff, londiff)
     return (lat - latdiff, lon - londiff), (lat + latdiff, lon + londiff)

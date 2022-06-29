@@ -44,12 +44,3 @@ class Observation:
             "elu_class2": self.elu_class2,
             "elu_class3": self.elu_class3
         })
-
-
-if __name__ == "__main__":
-    image = vs.PILImage.create("dbs/images/224/2593822195-1.png")
-    if image is None:
-        raise Exception("Image not found")
-    observation = Observation([image], lat=0.0, long=0.0, date=datetime.datetime(
-        year=2020, month=1, day=1), kg=0, elu_class1="test", elu_class2="test", elu_class3="test")
-    print(observation.full_observation())

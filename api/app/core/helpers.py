@@ -1,6 +1,7 @@
-import imp
-from fastai.data.external import *
-from fastbook import *
+import torch
+from torch import tensor
+from fastai.torch_core import TensorCategory
+from fastai.vision.all import *
 from fastai.data.external import *
 import torch.nn.functional as F
 from .observation import Observation
@@ -116,22 +117,6 @@ def get_bounding_box(lat, lon, dist):
     latdiff = (180 / math.pi) * (dist / 6378137)
     londiff = (180 / math.pi) * (dist / 6378137) / math.cos(lat)
     return (lat - latdiff, lon - londiff), (lat + latdiff, lon + londiff)
-
-
-def get_db_species(conn, observation, dist):
-    p1, p2 = get_bounding_box(tab_item.decimallatitude,
-                              tab_item.decimallongitude, dist)
-    print(p1, p2)
-    cursor = conn.execute("""
-    SELECT species, COUNT(*)
-    FROM validobservations v 
-    JOIN trainingspecies t ON v.specieskey = t.specieskey
-    WHERE decimallatitude BETWEEN ? AND ? 
-    AND decimallongitude BETWEEN ? AND ? 
-    GROUP BY 1 ORDER BY 2;""",
-                          (p1[0], p2[0], p1[1], p2[1]))
-    results = cursor.fetchall()
-    print(len(results))
 
 
 def obs_from_series(series: pd.Series, image_locs: list[str]) -> Observation:

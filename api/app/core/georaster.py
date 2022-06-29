@@ -72,30 +72,17 @@ class KGRaster:
 
 
 class EluRaster:
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, db_path: str):
         self.raster_path = filename
         self.raster = GeoRaster(self.raster_path)
+        self.db_path = db_path
 
     def get_classes(self, lat: float, long: float) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         eluid = self.raster.get_value(lat, long)
 
-        with sqlite3.connect('dbs/fungid.sqlite') as con:
+        with sqlite3.connect(self.db_path) as con:
             classes: Tuple[str, str, str] = con.execute(
                 "SELECT class1, class2, class3 FROM elu_values WHERE eluid = ?;", (eluid, )).fetchone()
             return classes
 
         return None, None, None
-
-
-if __name__ == "__main__":
-    import os
-    kgpath = os.getenv("KG_RASTER_PATH")
-    elupath = os.getenv("ELU_RASTER_PATH")
-    if kgpath is None or elupath is None:
-        raise Exception("KG_RASTER_PATH and ELU_RASTER_PATH must be set")
-
-    raster = GeoRaster(elupath)
-    val = raster.get_value(52.905696, -1.225849)
-    print(val)
-    # raster = EluRaster(elupath)
-    # print(raster.get_classes(52.905696, -1.225849))

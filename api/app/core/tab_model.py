@@ -21,8 +21,7 @@ class TabModel():
         ]).groupby('species').sum()
 
         max_val = stats.likelihood.max()
-        return (stats.likelihood + max_val) / (max_val * 2)
-        # return stats.likelihood / max_val
+        return (stats.likelihood / max_val) + 1
 
 
 def get_species_stats(connection_string: str) -> pd.DataFrame:

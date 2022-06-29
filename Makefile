@@ -119,6 +119,25 @@ load-sqlite:
 	sqlite3 $(SQLITEDB) < sqlite/views.sql
 	sqlite3 $(SQLITEDB) < sqlite/indexes.sql
 
+create-versioned-sqlite:
+	sqlite3 $(SQLITEDB) ".dump trainingspecies" | sqlite3 dbs/fungid-v0-4.sqlite
+	sqlite3 $(SQLITEDB) ".dump trainingobservations" | sqlite3 dbs/fungid-v0-4.sqlite
+	sqlite3 $(SQLITEDB) ".dump trainingimages" | sqlite3 dbs/fungid-v0-4.sqlite
+	sqlite3 $(SQLITEDB) ".dump speciesstats" | sqlite3 dbs/fungid-v0-4.sqlite
+	
+run-api:
+	cd api &&\
+		docker build -t fungid-api . &&\
+		docker run --rm -it -p 8000:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api
+
+exec-api:
+	cd api &&\
+		docker build -t fungid-api . &&\
+		docker run -it -p 8000:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api bash
+
+test-api:
+	http -f POST 0.0.0.0:8000/analyze image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
+
 # Jupyter Lab
 jupyter:
 	jupyter-lab --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' 
