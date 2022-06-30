@@ -50,8 +50,8 @@ COPY app app/
 
 RUN mkdir /var/data
 
-# RUN python app/server.py
+RUN python app/server.py
 
-EXPOSE 5000
+EXPOSE 9100
 
 CMD ["python", "app/server.py", "serve"]
