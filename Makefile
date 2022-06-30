@@ -126,12 +126,12 @@ create-versioned-sqlite:
 	sqlite3 $(SQLITEDB) ".dump speciesstats" | sqlite3 dbs/fungid-v0-4.sqlite
 	
 run-api:
-	cd api &&\
+	cd classifierapi &&\
 		docker build -t fungid-api . &&\
 		docker run --rm -it -p 8000:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api
 
 exec-api:
-	cd api &&\
+	cd classifierapi &&\
 		docker build -t fungid-api . &&\
 		docker run -it -p 8000:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api bash
 
