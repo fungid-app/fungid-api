@@ -61,5 +61,9 @@ async def analyze(request):
     return JSONResponse(results)
 
 
+@ app.route('/healthcheck', methods=['GET'])
+async def healthcheck(request):
+    return JSONResponse({'status': 'ok'})
+
 if __name__ == '__main__':
     uvicorn.run(app=app, host='0.0.0.0', port=8080, log_level="info")
