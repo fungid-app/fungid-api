@@ -54,6 +54,6 @@ RUN pip install --upgrade -r requirements.txt
 
 COPY app app/
 
-EXPOSE 9100
+EXPOSE 8080
 
 CMD ["python", "app/server.py"]

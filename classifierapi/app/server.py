@@ -47,7 +47,7 @@ app.add_middleware(CORSMiddleware, allow_origins=[
                    '*'], allow_headers=['X-Requested-With', 'Content-Type'])
 
 
-@ app.route('/analyze', methods=['POST'])
+@ app.route('/', methods=['POST'])
 async def analyze(request):
     form_data = await request.form()
     images = await parse_images_from_request(form_data)
@@ -62,4 +62,4 @@ async def analyze(request):
 
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host='0.0.0.0', port=9100, log_level="info")
+    uvicorn.run(app=app, host='0.0.0.0', port=8080, log_level="info")
