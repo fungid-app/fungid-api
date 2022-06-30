@@ -54,4 +54,4 @@ RUN mkdir /var/data
 
 EXPOSE 5000
 
-# CMD ["python", "app/server.py", "serve"]
+CMD ["python", "app/server.py", "serve"]
