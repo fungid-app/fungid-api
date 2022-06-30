@@ -7,37 +7,35 @@ from .observation import Observation
 
 class TabModel():
     def __init__(self, connection_string: str):
-        self.species_stats = get_species_stats(connection_string)
+        self.connection_string = connection_string
 
     def get_predictions(self, observation: Observation) -> pd.Series:
-        stats = pd.concat([
-            self.species_stats.loc[('kg', str(observation.kg))],
-            self.species_stats.loc[('elu_class1', observation.elu_class1)],
-            self.species_stats.loc[('elu_class2', observation.elu_class2)],
-            self.species_stats.loc[('elu_class3', observation.elu_class3)],
-            self.species_stats.loc[('normalizedmonth',
-                                    str(observation.normalized_month()))],
-            self.species_stats.loc[('season', observation.season())]
-        ]).groupby('species').sum()
+        with sqlite3.connect(self.connection_string) as con:
+            params = (
+                str(observation.kg),
+                observation.elu_class1,
+                observation.elu_class2,
+                observation.elu_class3,
+                str(observation.normalized_month()),
+                observation.season()
+            )
 
-        max_val = stats.likelihood.max()
-        return (stats.likelihood / max_val) + 1
+            stats = pd.read_sql_query(
+                """SELECT species, SUM(likelihood) AS likelihood
+                FROM speciesstats s
+                WHERE (
+                    stat = 'kg' AND value = ?
+                    OR stat = 'elu_class1' AND value = ?
+                    OR stat = 'elu_class2' AND value = ?
+                    OR stat = 'kelu_class3' AND value = ?
+                    OR stat = 'normalizedmonth' AND value = ?
+                    OR stat = 'season' AND value = ?
+                )
+                GROUP BY species""", con,
+                params=params  # type: ignore
+            ).set_index('species')
 
+            max_val = stats.likelihood.max()
+            return ((stats.likelihood / max_val) + 1) / 2
 
-def get_species_stats(connection_string: str) -> pd.DataFrame:
-    species_stats = None
-
-    with sqlite3.connect(connection_string) as con:
-        species_stats = pd.read_sql_query(
-            "SELECT s.species, s.stat, s.value, s.likelihood FROM speciesstats s;", con)
-
-        species_stats = species_stats.set_index(
-            ['stat', 'value', 'species'])
-
-        species_stats = species_stats.sort_index(
-            level=species_stats.index.names)
-
-    if species_stats is None:
-        raise Exception("Error getting species stats")
-
-    return species_stats
+        return pd.Series()

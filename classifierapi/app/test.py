@@ -68,7 +68,7 @@ def test_observation_factory():
 def test_integrated_classifier():
     observation = get_observation()
     ic = get_integrated_classifier()
-    preds = ic.get_all_predictions(observation)
+    preds = ic.get_combined_predictions(observation, False)
     print(preds)
 
 

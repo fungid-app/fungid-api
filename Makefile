@@ -136,7 +136,10 @@ exec-api:
 		docker run -it -p 9100:8080 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data/v0.4.1 fungid-api bash
 
 test-api:
-	http -f POST 0.0.0.0:8000/analyze image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
+	http -f POST 0.0.0.0:8000/ image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
+
+test-prod-api:
+	http -f POST https://classifier.fungid.app/ image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01
 
 # Jupyter Lab
 jupyter:
