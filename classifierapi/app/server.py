@@ -56,7 +56,7 @@ async def analyze(request):
     lon = float(form_data['lon'])
     date = datetime.strptime(date, '%Y-%m-%d')
     obs = obs_factory.create(images, lat, lon, date)
-    results = classifier.get_all_predictions(obs).to_json()
+    results = classifier.get_combined_predictions(obs).to_json()
 
     return JSONResponse(results)
 
