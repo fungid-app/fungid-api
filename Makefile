@@ -128,12 +128,12 @@ create-versioned-sqlite:
 run-api:
 	cd classifierapi &&\
 		docker build -t fungid-api . &&\
-		docker run --rm -it -p 8000:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api
+		docker run --rm -it -p 9100:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api
 
 exec-api:
 	cd classifierapi &&\
 		docker build -t fungid-api . &&\
-		docker run -it -p 8000:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api bash
+		docker run -it -p 9100:5000 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data fungid-api bash
 
 test-api:
 	http -f POST 0.0.0.0:8000/analyze image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt

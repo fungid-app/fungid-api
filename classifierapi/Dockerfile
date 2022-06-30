@@ -42,16 +42,18 @@ RUN rm -rf gdal-3.4.0  &&\
     rm -rf proj-8.2.1 &&\
     rm gdal-3.4.0.tar.gz
     
+ENV DISK=/var/data/v0.4.1/
+ENV MODEL_FILE_NAME=image-model.pkl
+ENV KG_FILE_NAME=kg.tif
+ENV ELU_FILE_NAME=elu.tif
+ENV DB_FILE_NAME=db.sqlite
+
 COPY requirements.txt .
 
 RUN pip install --upgrade -r requirements.txt
 
 COPY app app/
 
-RUN mkdir /var/data
-
-RUN python app/server.py
-
 EXPOSE 9100
 
-CMD ["python", "app/server.py", "serve"]
+CMD ["python", "app/server.py"]

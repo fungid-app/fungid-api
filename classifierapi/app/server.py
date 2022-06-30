@@ -1,3 +1,7 @@
+from core.integratedclassifier import IntegratedClassifier
+from core.georaster import KGRaster, EluRaster
+from core.observation_factory import ObservationFactory
+
 import uvicorn
 import sys
 from datetime import datetime
@@ -5,11 +9,24 @@ from io import BytesIO
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
-from setup import setup
 from fastai.vision.core import PILImage
 from core.helpers import *
+import os
 
-classifier, obs_factory = setup()
+disk = os.environ.get('DISK')
+model_file_name = os.environ.get('MODEL_FILE_NAME')
+kg_file_name = os.environ.get('KG_FILE_NAME')
+elu_file_name = os.environ.get('ELU_FILE_NAME')
+db_file_name = os.environ.get('DB_FILE_NAME')
+
+if disk is None or model_file_name is None or kg_file_name is None or elu_file_name is None or db_file_name is None:
+    print("Missing environment variables")
+    sys.exit(1)
+
+classifier = IntegratedClassifier(
+    disk + model_file_name, disk + db_file_name, cpu=True)
+obs_factory = ObservationFactory(
+    KGRaster(disk + kg_file_name), EluRaster(disk + elu_file_name, disk + db_file_name))
 
 
 async def parse_images_from_request(form_data):
@@ -45,5 +62,4 @@ async def analyze(request):
 
 
 if __name__ == '__main__':
-    if 'serve' in sys.argv:
-        uvicorn.run(app=app, host='0.0.0.0', port=9100, log_level="info")
+    uvicorn.run(app=app, host='0.0.0.0', port=9100, log_level="info")
