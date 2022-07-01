@@ -1,7 +1,6 @@
-from fastai.vision.all import *
+from fastai.vision.all import load_learner, PILImage
 from typing import Tuple
 import pandas as pd
-from fastai.data.external import *
 
 
 class ImageClassifier:

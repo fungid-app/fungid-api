@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "docker-build",
+      "label": "docker-build ic",
+      "platform": "python",
+      "dockerBuild": {
+        "tag": "classifierapi:latest",
+        "dockerfile": "${workspaceFolder}/classifierapi/Dockerfile",
+        "context": "${workspaceFolder}/classifierapi",
+        "pull": true
+      }
+    },
+    {
+      "type": "docker-run",
+      "label": "docker-run: debug ic",
+      "dependsOn": ["docker-build ic"],
+      // "python": {
+      //   "file": "app/server.py"
+      // },
+      "python": {
+        "module": "uvicorn",
+        "args": [
+          "server:app",
+          "--reload",
+          "--port 8080",
+          "--log-level info",
+          "--host 0.0.0.0"
+        ]
+      },
+      "dockerRun": {
+        "image": "classifierapi:latest",
+        "ports": [{ "containerPort": 8080, "hostPort": 9100 }],
+        "env": {
+          "BUILD_ENV": "DEBUG"
+        },
+        "volumes": [
+          {
+            "localPath": "${workspaceFolder}/classifierapi/app",
+            "containerPath": "/app"
+          },
+          {
+            "localPath": "${workspaceFolder}/models/v0.4/prod",
+            "containerPath": "/var/data/v0.4.1"
+          }
+        ]
+      }
+    }
+  ]
+}

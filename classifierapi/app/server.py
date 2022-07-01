@@ -9,8 +9,9 @@ from io import BytesIO
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
+from starlette.middleware.gzip import GZipMiddleware
+from starlette.middleware import Middleware
 from fastai.vision.core import PILImage
-from core.helpers import *
 import os
 
 disk = os.environ.get('DISK')
@@ -42,12 +43,15 @@ async def parse_images_from_request(form_data):
 
     return images
 
-app = Starlette()
-app.add_middleware(CORSMiddleware, allow_origins=[
-                   '*'], allow_headers=['X-Requested-With', 'Content-Type'])
+middleware = [
+    Middleware(GZipMiddleware, minimum_size=1000),
+    Middleware(CORSMiddleware, allow_origins=[
+               '*'], allow_headers=['X-Requested-With', 'Content-Type'])
+]
+app = Starlette(middleware=middleware)
 
 
-@ app.route('/', methods=['POST'])
+@app.route('/', methods=['POST'])
 async def analyze(request):
     form_data = await request.form()
     images = await parse_images_from_request(form_data)
@@ -61,9 +65,11 @@ async def analyze(request):
     return JSONResponse(results)
 
 
-@ app.route('/healthcheck', methods=['GET'])
+@app.route('/healthcheck', methods=['GET'])
 async def healthcheck(request):
-    return JSONResponse({'status': 'ok'})
+    return JSONResponse({'status': 'ok - test'})
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host='0.0.0.0', port=8080, log_level="info")
+    # debug = os.environ.get('BUILD_ENV') == 'DEBUG'
+    # print("debug: " + str(debug))
+    uvicorn.run("__main__:app", host='0.0.0.0', port=8080, log_level="info")

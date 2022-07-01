@@ -54,6 +54,8 @@ RUN pip install --upgrade -r requirements.txt
 
 COPY app app/
 
+WORKDIR /app
+
 EXPOSE 8080
 
-CMD ["python", "app/server.py"]
+# CMD ["python", "app/server.py"]

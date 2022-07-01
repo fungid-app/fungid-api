@@ -52,9 +52,9 @@ register-converted:
 		&& mv $(CONVERTED) $(BACKUP)/`date +'%y-%m-%d-%H%M-%S'` \
 		&& mkdir $(CONVERTED)
 
-sync-external-hd:
-	find $(BACKUP) -type d -maxdepth 1 | parallel "mkdir -p $(EXTERNALNEW)/{}" \
-		&& find $(BACKUP)/22-05-13* -type f -exec mv -v {} $(EXTERNALNEW)/{} \;
+sync-to-dlm:
+	find $(BACKUP) -type f \
+		| parallel -j60 "scp {} 192.168.88.50:/mnt/4tb/fungid/{} && rm -v {}"
 
 register-errors:
 	find $(ERRORS) -type f | grep -o '[a-z0-9]\+\/[0-9]\+\-[0-9]\+' | tr '-' ',' | tr '/' ',' >> $(ERRORRECORD) \
@@ -125,16 +125,6 @@ create-versioned-sqlite:
 	sqlite3 $(SQLITEDB) ".dump trainingimages" | sqlite3 dbs/fungid-v0-4.sqlite
 	sqlite3 $(SQLITEDB) ".dump speciesstats" | sqlite3 dbs/fungid-v0-4.sqlite
 	
-run-api:
-	cd classifierapi &&\
-		docker build -t fungid-api . &&\
-		docker run --rm -it -p 9100:8080 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data/v0.4.1 fungid-api
-
-exec-api:
-	cd classifierapi &&\
-		docker build -t fungid-api . &&\
-		docker run -it -p 9100:8080 -v "$$(cd ../ && pwd)"/models/v0.4/prod:/var/data/v0.4.1 fungid-api bash
-
 test-api:
 	http -f POST 0.0.0.0:8000/ image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
 
