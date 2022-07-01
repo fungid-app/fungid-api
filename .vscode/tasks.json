@@ -14,11 +14,8 @@
     },
     {
       "type": "docker-run",
-      "label": "docker-run: debug ic",
+      "label": "docker-run: ic",
       "dependsOn": ["docker-build ic"],
-      // "python": {
-      //   "file": "app/server.py"
-      // },
       "python": {
         "module": "uvicorn",
         "args": [
@@ -31,7 +28,12 @@
       },
       "dockerRun": {
         "image": "classifierapi:latest",
-        "ports": [{ "containerPort": 8080, "hostPort": 9100 }],
+        "ports": [
+          {
+            "containerPort": 8080,
+            "hostPort": 9100
+          }
+        ],
         "env": {
           "BUILD_ENV": "DEBUG"
         },
@@ -43,6 +45,36 @@
           {
             "localPath": "${workspaceFolder}/models/v0.4/prod",
             "containerPath": "/var/data/v0.4.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "docker-build",
+      "label": "docker-build api",
+      "platform": "python",
+      "dockerBuild": {
+        "tag": "api:latest",
+        "dockerfile": "${workspaceFolder}/api/Dockerfile",
+        "context": "${workspaceFolder}/api",
+        "pull": true
+      }
+    },
+    {
+      "type": "docker-run",
+      "label": "docker-run: api",
+      "dependsOn": ["docker-build api"],
+      "dockerRun": {
+        "image": "api:latest",
+        "ports": [{ "containerPort": 8080, "hostPort": 9000 }],
+        "env": {
+          "BUILD_ENV": "DEBUG"
+        },
+        "command": "bash",
+        "volumes": [
+          {
+            "localPath": "${workspaceFolder}/api",
+            "containerPath": "/api"
           }
         ]
       }

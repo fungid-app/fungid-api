@@ -2,6 +2,12 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "node",
+      "request": "attach",
+      "name": "Docker: Attach to Node",
+      "remoteRoot": "/app"
+    },
+    {
       "name": "Python: Current File",
       "type": "python",
       "request": "launch",
@@ -14,12 +20,27 @@
       "name": "Docker: Image Classifier API",
       "type": "docker",
       "request": "launch",
-      "preLaunchTask": "docker-run: debug ic",
+      "preLaunchTask": "docker-run: ic",
       "python": {
         "pathMappings": [
           {
             "localRoot": "${workspaceFolder}/classifierapi/app",
             "remoteRoot": "/app"
+          }
+        ],
+        "projectType": "general"
+      }
+    },
+    {
+      "name": "Docker: Base API",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-run: api",
+      "python": {
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceFolder}/api/",
+            "remoteRoot": "/api"
           }
         ],
         "projectType": "general"
