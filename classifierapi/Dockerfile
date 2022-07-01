@@ -58,4 +58,4 @@ WORKDIR /app
 
 EXPOSE 8080
 
-# CMD ["python", "app/server.py"]
+CMD ["python", "server.py"]
