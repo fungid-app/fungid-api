@@ -35,12 +35,12 @@
       "name": "Docker: Base API",
       "type": "docker",
       "request": "launch",
-      "preLaunchTask": "docker-run: api",
+      "preLaunchTask": "docker-run: base-api",
       "python": {
         "pathMappings": [
           {
-            "localRoot": "${workspaceFolder}/api/",
-            "remoteRoot": "/api"
+            "localRoot": "${workspaceFolder}/base-api/",
+            "remoteRoot": "/base-api"
           }
         ],
         "projectType": "general"

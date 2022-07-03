@@ -126,10 +126,10 @@ create-versioned-sqlite:
 	sqlite3 $(SQLITEDB) ".dump speciesstats" | sqlite3 dbs/fungid-v0-4.sqlite
 	
 test-api:
-	http -f POST 0.0.0.0:8000/ image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
+	http -f POST 0.0.0.0:8000/ image0@dbs/images/500/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
 
 test-prod-api:
-	http -f POST https://classifier.fungid.app/ image0@dbs/images/224/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01
+	http -f POST https://classifier.fungid.app/ image0@dbs/images/500/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01
 
 # Jupyter Lab
 jupyter:

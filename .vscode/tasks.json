@@ -51,25 +51,25 @@
     },
     {
       "type": "docker-build",
-      "label": "docker-build api",
+      "label": "docker-build base-api",
       "platform": "python",
       "dockerBuild": {
-        "tag": "api:latest",
-        "dockerfile": "${workspaceFolder}/api/Dockerfile",
+        "tag": "base-api:latest",
+        "dockerfile": "${workspaceFolder}/base-api/Dockerfile",
         "context": "${workspaceFolder}",
         "pull": true
       }
     },
     {
       "type": "docker-run",
-      "label": "docker-run: api",
-      "dependsOn": ["docker-build api"],
+      "label": "docker-run: base-api",
+      "dependsOn": ["docker-build base-api"],
       "python": {
         "file": "manage.py",
         "args": ["runserver", "0.0.0.0:8080"]
       },
       "dockerRun": {
-        "image": "api:latest",
+        "image": "base-api:latest",
         "ports": [
           {
             "containerPort": 8080,
@@ -82,8 +82,8 @@
         // "command": "python manage.py runserver 0.0.0.0:8080",
         "volumes": [
           {
-            "localPath": "${workspaceFolder}/api",
-            "containerPath": "/api"
+            "localPath": "${workspaceFolder}/base-api",
+            "containerPath": "/base-api"
           }
         ]
       }
