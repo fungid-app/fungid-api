@@ -8,7 +8,7 @@
       "dockerBuild": {
         "tag": "classifierapi:latest",
         "dockerfile": "${workspaceFolder}/classifierapi/Dockerfile",
-        "context": "${workspaceFolder}/classifierapi",
+        "context": "${workspaceFolder}",
         "pull": true
       }
     },
@@ -56,7 +56,7 @@
       "dockerBuild": {
         "tag": "api:latest",
         "dockerfile": "${workspaceFolder}/api/Dockerfile",
-        "context": "${workspaceFolder}/api",
+        "context": "${workspaceFolder}",
         "pull": true
       }
     },
@@ -64,13 +64,22 @@
       "type": "docker-run",
       "label": "docker-run: api",
       "dependsOn": ["docker-build api"],
+      "python": {
+        "file": "manage.py",
+        "args": ["runserver", "0.0.0.0:8080"]
+      },
       "dockerRun": {
         "image": "api:latest",
-        "ports": [{ "containerPort": 8080, "hostPort": 9000 }],
+        "ports": [
+          {
+            "containerPort": 8080,
+            "hostPort": 9000
+          }
+        ],
         "env": {
           "BUILD_ENV": "DEBUG"
         },
-        "command": "bash",
+        // "command": "python manage.py runserver 0.0.0.0:8080",
         "volumes": [
           {
             "localPath": "${workspaceFolder}/api",
