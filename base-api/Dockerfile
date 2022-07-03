@@ -11,3 +11,4 @@ RUN pip install -r requirements.txt
 
 COPY ./base-api /base-api
 
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
