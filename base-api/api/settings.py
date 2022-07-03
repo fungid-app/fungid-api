@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-x^tfr-c&i2cw7ze=irf8=jxn0d#@3sq+7$d@t3e3y2^b$h$$-&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['bob.weishuhn.net', 'api.fungid.app']
 
 
 # Application definition
