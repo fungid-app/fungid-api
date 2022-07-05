@@ -1,56 +1,124 @@
 -- Duckdb
--- COPY (SELECT phylum, phylumkey fROM occurrence WHERE phylum IS NOT NULL GROUP BY 1,2 ORDER BY 1) TO 'phylum.csv' (DELIMITER ',', HEADER);
--- COPY (SELECT _class, classkey, phylum fROM occurrence WHERE _class IS NOT NULL GROUP BY 1,2, 3 ORDER BY 1) TO 'class.csv' (DELIMITER ',', HEADER);
--- COPY (SELECT _order, orderkey, _class fROM occurrence WHERE _order IS NOT NULL GROUP BY 1,2, 3 ORDER BY 1) TO 'order.csv' (DELIMITER ',', HEADER);
--- COPY (SELECT _family, familykey, _order fROM occurrence WHERE _family IS NOT NULL GROUP BY 1,2, 3 ORDER BY 1) TO 'family.csv' (DELIMITER ',', HEADER);
--- COPY (SELECT genus, genuskey, _family fROM occurrence WHERE genus IS NOT NULL GROUP BY 1,2, 3 ORDER BY 1) TO 'genus.csv' (DELIMITER ',', HEADER);
--- COPY (SELECT species, specieskey, genus fROM occurrence WHERE species IS NOT NULL GROUP BY 1,2, 3 ORDER BY 1) TO 'species.csv' (DELIMITER ',', HEADER);
-
-DROP TABLE IF EXISTS phylum;
-DROP TABLE IF EXISTS class;
-DROP TABLE IF EXISTS order;
-DROP TABLE IF EXISTS family;
-DROP TABLE IF EXISTS genus;
-DROP TABLE IF EXISTS species;
-
+-- COPY (SELECT phylum, _class, _order, _family, genus, species, COUNT(*) as obs, MAX(eventdate) AS lastobs FROM occurrence WHERE species IS NOT NULL AND genus IS NOT NULL GROUP BY 1,2,3,4,5,6 ORDER BY 1,2,3,4,5,6) TO 'base-api/taxonomy/data/species.csv' (header, delimiter ',');
+-- COPY (SELECT m.gbifid, m.imgid, m.identifier, m.rightsholder, m.creator, m.license FROM validimages m JOIN validobservations v ON m.gbifid = v.gbifid) TO 'base-api/taxonomy/data/images.csv' (header, delimiter ',');
+-- COPY (SELECT gbifid, accessRights, license, _language, rightsHolder, recordedBy, eventDate, decimallatitude, decimallongitude, countrycode, stateProvince, county, municipality, locality, vernacularName, species FROM validobservations) TO 'base-api/taxonomy/data/observations.csv' (header, delimiter ',');
+DROP TABLE IF EXISTS species_temp;
+DROP TABLE IF EXISTS images_temp;
+DROP TABLE IF EXISTS observations_temp;
 
 .mode csv
-.import 'api/taxonomy/data/phylum.csv' phylum
-.import 'api/taxonomy/data/class.csv' class
-.import 'api/taxonomy/data/order.csv' order
-.import 'api/taxonomy/data/family.csv' family
-.import 'api/taxonomy/data/genus.csv' genus
-.import 'api/taxonomy/data/species.csv' species
-
-INSERT INTO taxonomy_phylum (key, name) SELECT phylumkey, phylum FROM phylum;
-
-INSERT INTO taxonomy_classtax (key, name, phylum_id) 
-SELECT classkey, _class, p.id
-FROM class c
-JOIN taxonomy_phylum p ON c.phylum = p.name;
-
-INSERT INTO taxonomy_order (key, name, classtax_id) 
-SELECT orderkey, _order, p.id
-FROM "order" c
-LEFT JOIN taxonomy_classtax p ON c._class = p.name;
+.import 'base-api/taxonomy/data/species.csv' species_temp
+.import 'base-api/taxonomy/data/images.csv' images_temp
+.import 'base-api/taxonomy/data/observations.csv' observations_temp
 
 
+UPDATE species_temp SET obs = b.totalobs
+ FROM species_temp t
+ JOIN (SELECT species, MAX(lastobs) AS maxobs, MIN(lastobs) firstobs, SUM(obs) aS totalobs FROM species_temp GROUP BY 1 HAVING COUNT(*) > 1)
+    b ON t.species = b.species AND t.lastobs = b.maxobs;
+
+
+DELETE FROM species_temp WHERE rowid IN (
+    SELECT t.rowid
+    FROM species_temp t
+    JOIN (SELECT species, MAX(lastobs) AS maxobs, MIN(lastobs) firstobs, SUM(obs) aS totalobs FROM species_temp GROUP BY 1 HAVING COUNT(*) > 1)
+        b ON t.species = b.species AND t.lastobs = b.firstobs
+);
+
+
+INSERT INTO taxonomy_species (
+    phylum, 
+    classname, 
+    "order", 
+    family, 
+    genus, 
+    species, 
+    description, 
+    included_in_classifier, 
+    number_of_observations
+) SELECT phylum,_class,_order,_family,genus,species, NULL, False, obs, lastobs FROM species_temp;
+
+
+INSERT INTO taxonomy_commonnames (species_id, language, name)
+SELECT s.id, LOWER(_language), LOWER(vernacularName)
+FROM observations_temp t
+JOIN taxonomy_species s ON t.species = s.species
+WHERE _language != '' AND vernacularName != ''
+GROUP BY 1,2,3;
+
+SELECT COUNT(*) FROM taxonomy_commonnames;
+
+
+INSERT INTO observations_gbifobserver (name)
+SELECT COALESCE(recordedBy, rightsHolder) FROM observations_temp GROUP BY 1;
+SELECT COUNT(*) FROM observations_gbifobserver;
+
+INSERT INTO observations_gbifobservations(
+    date,
+    gbifid,
+    latitude,
+    longitude,
+    public,
+    acces_rights,
+    rights_holder,
+    recorded_by,
+    license,
+    countrycode,
+    state_province,
+    county,
+    municipality,
+    locality,
+    species_id,
+    observer_id
+)
+SELECT eventDate,
+    t.gbifid,
+    decimallatitude,
+    decimallongitude,
+    False,
+    accessRights,
+    rightsHolder,
+    recordedBy,
+    license,
+    countrycode,
+    stateProvince,
+    county,
+    municipality,
+    locality,
+    s.id,
+    o.id
+FROM observations_temp t
+JOIN observations_gbifobserver o ON COALESCE(recordedBy, rightsHolder) = o.name
+JOIN taxonomy_species s ON t.species = s.species;
+
+SELECT COUNT(*) FROM observations_gbifobservations;
+
+
+INSERT INTO observations_gbifobservationimage (
+    imgid,
+    external_url,
+    rights_holder,
+    creator,
+    license,
+    observation_id,
+    is_thumbnail
+)
+SELECT 
+    m.imgid, 
+    m.identifier, 
+    m.rightsholder, 
+    m.creator, 
+    m.license,
+    t.gbifid,
+    False
+FROM images_temp m
+JOIN observations_gbifobservations t ON m.gbifid = t.gbifid;
+
+SELECT COUNT(*) FROM observations_gbifobservationimage;
 
 
 
 
-DROP TABLE IF EXISTS phylum;
-DROP TABLE IF EXISTS class;
-DROP TABLE IF EXISTS order;
-DROP TABLE IF EXISTS family;
-DROP TABLE IF EXISTS genus;
-DROP TABLE IF EXISTS species;
-
-
-
-CREATE TABLE IF NOT EXISTS "taxonomy_phylum" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(255) NOT NULL UNIQUE, "key" integer NOT NULL);
-CREATE TABLE IF NOT EXISTS "taxonomy_classtax" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(255) NOT NULL UNIQUE, "key" integer NOT NULL, "phylum_id" bigint NOT NULL REFERENCES "taxonomy_phylum" ("id") DEFERRABLE INITIALLY DEFERRED);
-CREATE TABLE IF NOT EXISTS "taxonomy_order" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(255) NOT NULL UNIQUE, "key" integer NOT NULL, "classtax_id" bigint NOT NULL REFERENCES "taxonomy_classtax" ("id") DEFERRABLE INITIALLY DEFERRED);
-CREATE TABLE IF NOT EXISTS "taxonomy_family" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(255) NOT NULL UNIQUE, "key" integer NOT NULL, "order_id" bigint NOT NULL REFERENCES "taxonomy_order" ("id") DEFERRABLE INITIALLY DEFERRED);
-CREATE TABLE IF NOT EXISTS "taxonomy_genus" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(255) NOT NULL UNIQUE, "key" integer NOT NULL, "family_id" bigint NOT NULL REFERENCES "taxonomy_family" ("id") DEFERRABLE INITIALLY DEFERRED);
-CREATE TABLE IF NOT EXISTS "taxonomy_species" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(100) NOT NULL UNIQUE, "key" integer NOT NULL, "description" text NOT NULL, "genus_id" bigint NOT NULL REFERENCES "taxonomy_genus" ("id") DEFERRABLE INITIALLY DEFERRED);
+DROP TABLE IF EXISTS species_temp;
+DROP TABLE IF EXISTS images_temp;
+DROP TABLE IF EXISTS observations_temp;

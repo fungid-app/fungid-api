@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-x^tfr-c&i2cw7ze=irf8=jxn0d#@3sq+7$d@t3e3y2^b$h$$-&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bob.weishuhn.net', 'api.fungid.app']
+ALLOWED_HOSTS = ['bob.weishuhn.net', 'api.fungid.app', '127.0.0.1']
 
 
 # Application definition
@@ -124,3 +124,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Rest Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10
+}

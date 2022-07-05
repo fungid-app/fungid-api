@@ -1,18 +1,18 @@
 from rest_framework import viewsets
-from observations.models import Observations, ObservationImage, Observer
-from observations.serializers import ObserverSerializer, ObservationSerializer, ObservationImageSerializer
+from observations.models import GbifObservations, GbifObservationImage, GbifObserver
+from observations.serializers import GbifObserverSerializer, GbifObservationSerializer, GbifObservationImageSerializer
 
 
 class ObserverViewSet(viewsets.ModelViewSet):
-    queryset = Observer.objects.all()
-    serializer_class = ObserverSerializer
+    queryset = GbifObserver.objects.all()
+    serializer_class = GbifObserverSerializer
 
 
 class ObservationViewSet(viewsets.ModelViewSet):
-    queryset = Observations.objects.all()
-    serializer_class = ObservationSerializer
+    queryset = GbifObservations.objects.all()
+    serializer_class = GbifObservationSerializer
 
 
 class ObservationImageViewSet(viewsets.ModelViewSet):
-    queryset = ObservationImage.objects.all()
-    serializer_class = ObservationImageSerializer
+    queryset = GbifObservationImage.objects.all()
+    serializer_class = GbifObservationImageSerializer

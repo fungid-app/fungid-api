@@ -1,31 +1,6 @@
 from rest_framework import viewsets
-from taxonomy.models import Phylum, ClassTax, Order, Family, Genus, Species, CommonNames
-from taxonomy.serializers import PhylumSerializer, ClassTaxSerializer, OrderSerializer, FamilySerializer, GenusSerializer, SpeciesSerializer, CommonNamesSerializer
-
-
-class PhylumViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Phylum.objects.all()
-    serializer_class = PhylumSerializer
-
-
-class ClassTaxViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ClassTax.objects.all()
-    serializer_class = ClassTaxSerializer
-
-
-class OrderViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-
-
-class FamilyViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Family.objects.all()
-    serializer_class = FamilySerializer
-
-
-class GenusViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Genus.objects.all()
-    serializer_class = GenusSerializer
+from taxonomy.models import Species, CommonNames
+from taxonomy.serializers import SpeciesSerializer, CommonNamesSerializer
 
 
 class SpeciesViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,21 +1,23 @@
 from rest_framework import serializers
-from observations.models import Observations, ObservationImage, Observer
+from observations.models import GbifObservations, GbifObservationImage, GbifObserver
 
 
-class ObserverSerializer(serializers.ModelSerializer):
+class GbifObserverSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Observer
+        model = GbifObserver
         fields = ['id', 'name']
 
 
-class ObservationSerializer(serializers.ModelSerializer):
+class GbifObservationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Observations
-        fields = ['id', 'date', 'latitude', 'longitude',
-                  'public', 'species', 'observer', 'images']
+        model = GbifObservations
+        fields = ['gbifid', 'date', 'latitude', 'longitude', 'public', 'acces_rights', 'rights_holder',
+                  'recorded_by', 'license', 'countrycode', 'state_province', 'county', 'municipality',
+                  'locality', 'species', 'observer']
 
 
-class ObservationImageSerializer(serializers.ModelSerializer):
+class GbifObservationImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ObservationImage
-        fields = ['id', 'url', 'observation']
+        model = GbifObservationImage
+        fields = ['id', 'imgid', 'external_url', 'rights_holder',
+                  'creator', 'license', 'is_thumbnail', 'gbifid']
