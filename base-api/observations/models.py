@@ -13,7 +13,7 @@ class GbifObserver(models.Model):
 
 class GbifObservations(models.Model):
     gbifid = models.BigIntegerField(primary_key=True)
-    date = models.DateField()
+    datecreated = models.DateTimeField()
     latitude = models.FloatField()
     longitude = models.FloatField()
     public = models.BooleanField(default=True)

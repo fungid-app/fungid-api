@@ -1,11 +1,11 @@
-dbs/*
+dbs/
 dbs
 .DS_Store
 
 fastbook/*
-tmp/*
+tmp/
 models/*
-
+base-api/data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

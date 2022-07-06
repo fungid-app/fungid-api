@@ -4,9 +4,10 @@ from observations import views
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
-router.register(r'observation', views.ObserverViewSet)
-router.register(r'observer', views.ObserverViewSet)
-router.register(r'image', views.ObservationImageViewSet)
+router.register(r'observation', views.ObservationViewSet,
+                basename='observation')
+router.register(r'observer', views.ObserverViewSet, basename='observer')
+router.register(r'image', views.ObservationImageViewSet, basename='image')
 
 urlpatterns = [
     path('', include(router.urls)),

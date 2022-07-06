@@ -3,16 +3,16 @@ from observations.models import GbifObservations, GbifObservationImage, GbifObse
 from observations.serializers import GbifObserverSerializer, GbifObservationSerializer, GbifObservationImageSerializer
 
 
-class ObserverViewSet(viewsets.ModelViewSet):
+class ObserverViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GbifObserver.objects.all()
     serializer_class = GbifObserverSerializer
 
 
-class ObservationViewSet(viewsets.ModelViewSet):
+class ObservationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GbifObservations.objects.all()
     serializer_class = GbifObservationSerializer
 
 
-class ObservationImageViewSet(viewsets.ModelViewSet):
+class ObservationImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = GbifObservationImage.objects.all()
     serializer_class = GbifObservationImageSerializer

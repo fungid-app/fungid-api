@@ -1,8 +1,11 @@
 from rest_framework import serializers
-from taxonomy.models import Species
+from taxonomy.models import Species, CommonNames
 
 
-class SpeciesSerializer(serializers.ModelSerializer):
+class SpeciesSerializer(serializers.HyperlinkedModelSerializer):
+    common_names = serializers.HyperlinkedRelatedField(
+        many=True, view_name='commonname-detail', read_only=True)
+
     class Meta:
         model = Species
         fields = [
@@ -20,7 +23,7 @@ class SpeciesSerializer(serializers.ModelSerializer):
         ]
 
 
-class CommonNamesSerializer(serializers.ModelSerializer):
+class CommonNamesSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Species
-        fields = ['id', 'name', 'species']
+        model = CommonNames
+        fields = ['id', 'name', 'species', 'language']
