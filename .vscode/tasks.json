@@ -43,8 +43,8 @@
             "containerPath": "/app"
           },
           {
-            "localPath": "${workspaceFolder}/models/v0.4/prod",
-            "containerPath": "/var/data/v0.4.1"
+            "localPath": "${workspaceFolder}/classifier-api/data",
+            "containerPath": "/var/data"
           }
         ]
       }
