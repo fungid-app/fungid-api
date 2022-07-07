@@ -1,6 +1,6 @@
 DBFOLDER := dbs
 DUCKDB := $(DBFOLDER)/fungid.ddb
-SQLITEDB := $(DBFOLDER)/fungid.sqlite
+SQLITEDB := $(DBFOLDER)/gbif.sqlite3
 IMAGES := $(DBFOLDER)/images
 DOWNLOADED := $(IMAGES)/downloaded
 VALIDATED := $(IMAGES)/validated

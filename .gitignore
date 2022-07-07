@@ -6,6 +6,8 @@ fastbook/*
 tmp/
 models/*
 base-api/data/
+classifier-api/data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

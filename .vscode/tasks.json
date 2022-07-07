@@ -6,8 +6,8 @@
       "label": "docker-build ic",
       "platform": "python",
       "dockerBuild": {
-        "tag": "classifierapi:latest",
-        "dockerfile": "${workspaceFolder}/classifierapi/Dockerfile",
+        "tag": "classifier-api:latest",
+        "dockerfile": "${workspaceFolder}/classifier-api/Dockerfile",
         "context": "${workspaceFolder}",
         "pull": true
       }
@@ -27,7 +27,7 @@
         ]
       },
       "dockerRun": {
-        "image": "classifierapi:latest",
+        "image": "classifier-api:latest",
         "ports": [
           {
             "containerPort": 8080,
@@ -39,7 +39,7 @@
         },
         "volumes": [
           {
-            "localPath": "${workspaceFolder}/classifierapi/app",
+            "localPath": "${workspaceFolder}/classifier-api/app",
             "containerPath": "/app"
           },
           {
