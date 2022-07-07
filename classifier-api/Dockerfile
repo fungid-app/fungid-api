@@ -46,7 +46,7 @@ ENV DISK=/var/data/v0.4.1/
 ENV MODEL_FILE_NAME=image-model.pkl
 ENV KG_FILE_NAME=kg.tif
 ENV ELU_FILE_NAME=elu.tif
-ENV DB_FILE_NAME=db.sqlite
+ENV DB_FILE_NAME=classifier-api.sqlite3
 
 COPY classifier-api/requirements.txt .
 

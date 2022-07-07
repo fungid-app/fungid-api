@@ -2,6 +2,7 @@
 -- COPY (SELECT phylum, _class, _order, _family, genus, species, COUNT(*) as obs, MAX(eventdate) AS lastobs FROM occurrence WHERE species IS NOT NULL AND genus IS NOT NULL GROUP BY 1,2,3,4,5,6 ORDER BY 1,2,3,4,5,6) TO 'base-api/taxonomy/data/species.csv' (header, delimiter ',');
 -- COPY (SELECT m.gbifid, m.imgid, m.identifier, m.rightsholder, m.creator, m.license FROM validimages m JOIN validobservations v ON m.gbifid = v.gbifid) TO 'base-api/taxonomy/data/tmp/images.csv' (header, delimiter ',');
 -- COPY (SELECT gbifid, accessRights, license, _language, rightsHolder, recordedBy, eventDate, decimallatitude, decimallongitude, countrycode, stateProvince, county, municipality, locality, vernacularName, species FROM validobservations) TO 'base-api/taxonomy/data/tmp/observations.csv' (header, delimiter ',');
+
 DROP TABLE IF EXISTS species_temp;
 DROP TABLE IF EXISTS images_temp;
 DROP TABLE IF EXISTS observations_temp;
@@ -124,3 +125,9 @@ DROP TABLE IF EXISTS images_temp;
 DROP TABLE IF EXISTS observations_temp;
 
 VACUUM;
+
+ATTACH 'dbs/gbif.sqlite3' AS gbif;
+
+UPDATE taxonomy_species SET included_in_classifier = True WHERE species IN (
+    SELECT species FROM gbif.trainingspecies
+);
