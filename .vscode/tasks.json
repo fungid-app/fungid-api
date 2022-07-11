@@ -43,7 +43,7 @@
             "containerPath": "/app"
           },
           {
-            "localPath": "${workspaceFolder}/classifier-api/data",
+            "localPath": "${workspaceFolder}/data",
             "containerPath": "/var/data"
           }
         ]
@@ -84,6 +84,10 @@
           {
             "localPath": "${workspaceFolder}/base-api",
             "containerPath": "/base-api"
+          },
+          {
+            "localPath": "${workspaceFolder}/data",
+            "containerPath": "/var/data"
           }
         ]
       }

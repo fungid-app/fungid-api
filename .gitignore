@@ -5,6 +5,7 @@ dbs
 fastbook/*
 tmp/
 models/*
+data/*
 base-api/data/
 classifier-api/data/
 
