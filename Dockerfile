@@ -48,11 +48,11 @@ ENV KG_FILE_NAME=kg.tif
 ENV ELU_FILE_NAME=elu.tif
 ENV DB_FILE_NAME=classifier-api.sqlite3
 
-COPY classifier-api/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --upgrade -r requirements.txt
 
-COPY classifier-api/app app
+COPY app app
 
 WORKDIR /app
 
