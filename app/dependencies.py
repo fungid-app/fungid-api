@@ -1,7 +1,7 @@
-from db import models
+from db.models import core
 from db.database import SessionLocal, engine
 
-models.Base.metadata.create_all(bind=engine)
+core.Base.metadata.create_all(bind=engine)
 
 
 def get_db():

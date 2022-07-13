@@ -1,8 +1,7 @@
-from operator import index
 from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Index
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from ..database import Base
 
 # DROP TABLE IF EXISTS gbif_observations;
 # DROP TABLE IF EXISTS gbif_observation_images;
@@ -15,11 +14,11 @@ from .database import Base
 class Species(Base):
     __tablename__ = "species"
     id = Column(Integer, primary_key=True)
-    phylum = Column(String, nullable=True)
-    classname = Column(String, nullable=True)
-    order = Column(String, nullable=True)
-    family = Column(String, nullable=True)
-    genus = Column(String, nullable=True)
+    phylum = Column(String, nullable=True, index=True)
+    classname = Column(String, nullable=True, index=True)
+    order = Column(String, nullable=True, index=True)
+    family = Column(String, nullable=True, index=True)
+    genus = Column(String, nullable=True, index=True)
     species = Column(String, unique=True, index=True)
     description = Column(String, nullable=True)
     included_in_classifier = Column(Boolean, default=False)
@@ -100,15 +99,3 @@ class GbifObservationImage(Base):
     observation_id = Column(Integer, ForeignKey(
         "gbif_observations.gbifid"), index=True)
     observation = relationship("GbifObservation", back_populates="images")
-
-
-class DbPediaData(Base):
-    __tablename__ = "dbpedia"
-    id = Column(Integer, primary_key=True)
-    prop = Column(String)
-    species = Column(String)
-    value = Column(String)
-
-
-Index('dbpedia_species_prop_value_idx', DbPediaData.species,
-      DbPediaData.prop, DbPediaData.value, unique=True)
