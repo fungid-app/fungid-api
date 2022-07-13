@@ -7,7 +7,6 @@
       "platform": "python",
       "dockerBuild": {
         "tag": "classifier-api:latest",
-        "dockerfile": "${workspaceFolder}/classifier-api/Dockerfile",
         "context": "${workspaceFolder}",
         "pull": true
       }
@@ -39,51 +38,8 @@
         },
         "volumes": [
           {
-            "localPath": "${workspaceFolder}/classifier-api/app",
+            "localPath": "${workspaceFolder}/app",
             "containerPath": "/app"
-          },
-          {
-            "localPath": "${workspaceFolder}/data",
-            "containerPath": "/var/data"
-          }
-        ]
-      }
-    },
-    {
-      "type": "docker-build",
-      "label": "docker-build base-api",
-      "platform": "python",
-      "dockerBuild": {
-        "tag": "base-api:latest",
-        "dockerfile": "${workspaceFolder}/base-api/Dockerfile",
-        "context": "${workspaceFolder}",
-        "pull": true
-      }
-    },
-    {
-      "type": "docker-run",
-      "label": "docker-run: base-api",
-      "dependsOn": ["docker-build base-api"],
-      "python": {
-        "file": "manage.py",
-        "args": ["runserver", "0.0.0.0:8080"]
-      },
-      "dockerRun": {
-        "image": "base-api:latest",
-        "ports": [
-          {
-            "containerPort": 8080,
-            "hostPort": 9000
-          }
-        ],
-        "env": {
-          "BUILD_ENV": "DEBUG"
-        },
-        // "command": "python manage.py runserver 0.0.0.0:8080",
-        "volumes": [
-          {
-            "localPath": "${workspaceFolder}/base-api",
-            "containerPath": "/base-api"
           },
           {
             "localPath": "${workspaceFolder}/data",

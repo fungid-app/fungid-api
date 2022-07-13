@@ -8,7 +8,7 @@
       "program": "${file}",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "envFile": "${workspaceFolder}/.env.debug"
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "name": "Docker: Image Classifier API",
@@ -18,7 +18,7 @@
       "python": {
         "pathMappings": [
           {
-            "localRoot": "${workspaceFolder}/classifier-api/app",
+            "localRoot": "${workspaceFolder}/app",
             "remoteRoot": "/app"
           }
         ],
@@ -26,19 +26,25 @@
       }
     },
     {
-      "name": "Docker: Lanch Base API",
-      "type": "docker",
+      "name": "Image Classifier API",
+      "type": "python",
       "request": "launch",
-      "preLaunchTask": "docker-run: base-api",
-      "python": {
-        "pathMappings": [
-          {
-            "localRoot": "${workspaceFolder}/base-api/",
-            "remoteRoot": "/base-api"
-          }
-        ],
-        "projectType": "general"
-      }
+      "envFile": "${workspaceFolder}/.env",
+      "module": "uvicorn",
+      "args": [
+        "server:app",
+        "--reload",
+        "--reload-dir",
+        "app",
+        "--app-dir",
+        "app",
+        "--port",
+        "8080",
+        "--log-level",
+        "info",
+        "--host",
+        "0.0.0.0"
+      ]
     }
   ]
 }

@@ -33,8 +33,8 @@ def _get_locations(con,  lat: float, long: float, dist: int) -> pd.Series:
     return pd.read_sql_query("""SELECT t.species, COUNT(*) as local--,
                                     --MIN(ABS(decimallatitude - ?)) AS close_lat,
                                     --MIN(ABS(decimallongitude - ?)) AS close_long
-                                FROM species t
-                                JOIN observations v ON v.specieskey = t.specieskey
+                                FROM classifier_species t
+                                JOIN classifier_observations v ON v.specieskey = t.specieskey
                                 WHERE decimallatitude BETWEEN ? AND ?
                                 AND decimallongitude BETWEEN ? AND ?
                                 GROUP BY 1;""",

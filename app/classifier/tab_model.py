@@ -22,12 +22,12 @@ class TabModel():
 
             stats = pd.read_sql_query(
                 """SELECT species, SUM(likelihood) AS likelihood
-                FROM speciesstats s
+                FROM classifier_speciesstats s
                 WHERE (
                     stat = 'kg' AND value = ?
                     OR stat = 'elu_class1' AND value = ?
                     OR stat = 'elu_class2' AND value = ?
-                    OR stat = 'kelu_class3' AND value = ?
+                    OR stat = 'elu_class3' AND value = ?
                     OR stat = 'normalizedmonth' AND value = ?
                     OR stat = 'season' AND value = ?
                 )

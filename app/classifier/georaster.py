@@ -82,7 +82,7 @@ class EluRaster:
 
         with sqlite3.connect(self.db_path) as con:
             classes: Tuple[str, str, str] = con.execute(
-                "SELECT class1, class2, class3 FROM elu_values WHERE eluid = ?;", (eluid, )).fetchone()
+                "SELECT class1, class2, class3 FROM classifier_elu_values WHERE eluid = ?;", (eluid, )).fetchone()
             return classes
 
         return None, None, None
