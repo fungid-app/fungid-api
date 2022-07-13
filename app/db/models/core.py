@@ -1,7 +1,8 @@
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Index
-from sqlalchemy.orm import relationship
-
-from ..database import Base
+from datetime import datetime
+from tkinter.tix import Tree
+from typing import List, Optional
+from sqlalchemy import BigInteger, Column, ForeignKey, Index
+from sqlmodel import Relationship, SQLModel, Field, UniqueConstraint
 
 # DROP TABLE IF EXISTS gbif_observations;
 # DROP TABLE IF EXISTS gbif_observation_images;
@@ -11,91 +12,107 @@ from ..database import Base
 # DROP TABLE IF EXISTS dbpedia;
 
 
-class Species(Base):
-    __tablename__ = "species"
-    id = Column(Integer, primary_key=True)
-    phylum = Column(String, nullable=True, index=True)
-    classname = Column(String, nullable=True, index=True)
-    order = Column(String, nullable=True, index=True)
-    family = Column(String, nullable=True, index=True)
-    genus = Column(String, nullable=True, index=True)
-    species = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)
-    included_in_classifier = Column(Boolean, default=False)
-    number_of_observations = Column(Integer)
+class CommonName(SQLModel, table=True):
+    __tablename__: str = "common_names"
 
-    common_names = relationship("CommonName", back_populates="species")
-    observations = relationship("GbifObservation", back_populates="species")
+    id: int = Field(primary_key=True)
+    name: Optional[str]
+    language: Optional[str]
+    species_id: Optional[int] = Field(foreign_key="species.id",
+                                      index=True)
+    species: "Species" = Relationship(back_populates="common_names")
 
-
-Index("species_included_in_classifier_index",
-      Species.included_in_classifier, Species.id, unique=True)
+    __table_args__ = (
+        Index('cn_species_name_language', "species_id", "name",
+              "language", unique=True),
+    )
 
 
-class CommonName(Base):
-    __tablename__ = "common_names"
+class Species(SQLModel, table=True):
+    __tablename__: str = "species"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    language = Column(String, nullable=True)
-    species_id = Column(Integer, ForeignKey("species.id"), index=True)
-    species = relationship("Species", back_populates="common_names")
+    id: int = Field(primary_key=True)
+    phylum: Optional[str] = Field(index=True)
+    classname: Optional[str] = Field(index=True)
+    order: Optional[str] = Field(index=True)
+    family: Optional[str] = Field(index=True)
+    genus: Optional[str] = Field(index=True)
+    species: Optional[str]
+    description: Optional[str]
+    included_in_classifier: bool = Field(default=False)
+    number_of_observations: Optional[int]
 
+    __table_args__ = (
+        Index("ix_species_species", "species", unique=True),
+        Index("species_included_in_classifier_index",
+              "included_in_classifier", "id", unique=True),
+    )
 
-Index('cn_species_name_language', CommonName.species_id, CommonName.name,
-      CommonName.language, unique=True)
-
-
-class GbifObserver(Base):
-    __tablename__ = "gbif_observers"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    observations = relationship("GbifObservation", back_populates="observer")
-
-
-class GbifObservation(Base):
-    __tablename__ = "gbif_observations"
-    gbifid = Column(BigInteger, primary_key=True, autoincrement=False)
-    datecreated = Column(DateTime)
-    latitude = Column(Float)
-    longitude = Column(Float)
-    public = Column(Boolean, default=True)
-    acces_rights = Column(String, nullable=True)
-    rights_holder = Column(String, nullable=True)
-    recorded_by = Column(String, nullable=True)
-    license = Column(String, nullable=True)
-    countrycode = Column(String, nullable=True)
-    state_province = Column(String, nullable=True)
-    county = Column(String, nullable=True)
-    municipality = Column(String, nullable=True)
-    locality = Column(String, nullable=True)
-
-    species_id = Column(Integer, ForeignKey(
-        "species.id"), nullable=True, index=True)
-    species = relationship("Species", back_populates="observations")
-
-    observer_id = Column(Integer, ForeignKey(
-        "gbif_observers.id"), nullable=True)
-    observer = relationship("GbifObserver", back_populates="observations")
-
-    images = relationship("GbifObservationImage", back_populates="observation")
+    common_names: List[CommonName] = Relationship(back_populates="species")
 
 
-Index('obs_gbifobs_sp_lat_lon_pub_idx', GbifObservation.species_id,
-      GbifObservation.latitude, GbifObservation.longitude, GbifObservation.public)
+class GbifObserver(SQLModel, table=True):
+    __tablename__: str = "gbif_observers"
 
-Index('obs_gbifobs_observer_idx', GbifObservation.observer_id)
+    id: int = Field(primary_key=True)
+    name: Optional[str]
+
+    observations: List["GbifObservation"] = Relationship(
+        back_populates="observer")
+    __table_args__ = (
+        UniqueConstraint("name"),
+    )
 
 
-class GbifObservationImage(Base):
-    __tablename__ = "gbif_observation_images"
-    id = Column(Integer, primary_key=True)
-    imgid = Column(Integer)
-    external_url = Column(String)
-    rights_holder = Column(String)
-    creator = Column(String)
-    license = Column(String)
-    is_thumbnail = Column(Boolean, default=False)
-    observation_id = Column(Integer, ForeignKey(
-        "gbif_observations.gbifid"), index=True)
-    observation = relationship("GbifObservation", back_populates="images")
+class GbifObservationImage(SQLModel, table=True):
+    __tablename__: str = "gbif_observation_images"
+    id: int = Field(primary_key=True)
+    imgid: Optional[int]
+    external_url: Optional[str]
+    rights_holder: Optional[str]
+    creator: Optional[str]
+    license: Optional[str]
+    is_thumbnail: bool = Field(default=False)
+    observation_id: Optional[int] = Field(
+        foreign_key="gbif_observations.gbifid", index=True)
+
+    observation: "GbifObservation" = Relationship(back_populates="images")
+
+
+class GbifObservation(SQLModel, table=True):
+    __tablename__: str = "gbif_observations"
+    gbifid: int = Field(sa_column=Column(
+        BigInteger(), autoincrement=False, primary_key=True))
+
+    datecreated: Optional[datetime]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    public: Optional[bool]
+    acces_rights: Optional[str]
+    rights_holder: Optional[str]
+    recorded_by: Optional[str]
+    license: Optional[str]
+    countrycode: Optional[str]
+    state_province: Optional[str]
+    county: Optional[str]
+    municipality: Optional[str]
+    locality: Optional[str]
+
+    species_id: Optional[int] = Field(foreign_key="species.id",
+                                      index=True)
+
+    species: Species = Relationship(back_populates="observations")
+
+    observer_id: Optional[int] = Field(
+        foreign_key="gbif_observers.id")
+
+    observer: GbifObserver = Relationship(back_populates="observations")
+
+    images: List[GbifObservationImage] = Relationship(
+        back_populates="observation")
+
+    __table_args__ = (
+        Index('obs_gbifobs_sp_lat_lon_pub_idx', "species_id",
+              "latitude", "longitude", "public"),
+        Index('obs_gbifobs_observer_idx', "observer_id")
+    )

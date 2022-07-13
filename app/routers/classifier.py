@@ -8,6 +8,9 @@ from fastai.vision.core import PILImage
 from fastapi import UploadFile
 
 from classifier.integratedclassifier import IntegratedClassifier
+from classifier.location_model import LocationModel
+from classifier.imageclassifier import ImageClassifier
+from classifier.tab_model import TabModel
 from classifier.georaster import KGRaster, EluRaster
 from classifier.observation_factory import ObservationFactory
 
@@ -27,9 +30,14 @@ if disk is None or model_file_name is None or kg_file_name is None or elu_file_n
     print("Missing environment variables")
     sys.exit(1)
 
+db_con_str = disk + db_file_name
 
-classifier = IntegratedClassifier(
-    disk + model_file_name, disk + db_file_name, cpu=True)
+full_classifier = IntegratedClassifier(
+    disk + model_file_name, db_con_str, cpu=True)
+location_classifier = LocationModel(db_con_str)
+tab_classifier = TabModel(db_con_str)
+image_classifier = ImageClassifier(disk + model_file_name, cpu=True)
+
 obs_factory = ObservationFactory(
     KGRaster(disk + kg_file_name), EluRaster(disk + elu_file_name, disk + db_file_name))
 
@@ -48,9 +56,25 @@ async def parse_images_from_request(images: list[UploadFile]):
 
 
 @router.put('/full', response_model=Dict[str, float])
-async def classify(date: datetime, lat: float, lon: float, images: list[UploadFile]):
+async def evaluate_full_classifier(date: datetime, lat: float, lon: float, images: list[UploadFile]):
     parsed_images = await parse_images_from_request(images)
     obs = obs_factory.create(parsed_images, lat, lon, date)
-    results: Dict[str, float] = classifier.get_combined_predictions(
+    return full_classifier.get_combined_predictions(
         obs).to_dict()
-    return results
+    
+
+@router.get('/location', response_model=Dict[str, float])
+async def evaluate_location_classifier(lat: float, lon: float):
+    return location_classifier.get_predictions(lat, lon).to_dict()
+    
+@router.get('/tabular', response_model=Dict[str, float])
+async def evaluate_tabular_classifier(date: datetime, lat: float, lon: float):
+    obs = obs_factory.create([], lat, lon, date)
+    return tab_classifier.get_predictions(obs).to_dict()
+
+@router.put('/image', response_model=Dict[str, float])
+async def evaluate_image_classifier(images: list[UploadFile]):
+    parsed_images = await parse_images_from_request(images)
+    preds, _ = image_classifier.get_predictions(parsed_images)
+    return preds.to_dict()
+    

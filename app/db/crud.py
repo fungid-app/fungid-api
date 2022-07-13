@@ -1,5 +1,4 @@
-from sqlalchemy.orm import Session
-
+from sqlmodel import Session
 from .models import core
 
 

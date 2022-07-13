@@ -1,12 +1,7 @@
-from db.models import core
-from db.database import SessionLocal, engine
-
-core.Base.metadata.create_all(bind=engine)
+from db.database import engine
+from sqlmodel import Session
 
 
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    with Session(engine) as session:
+        yield session

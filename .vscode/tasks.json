@@ -30,7 +30,7 @@
         "ports": [
           {
             "containerPort": 8080,
-            "hostPort": 9100
+            "hostPort": 9000
           }
         ],
         "env": {

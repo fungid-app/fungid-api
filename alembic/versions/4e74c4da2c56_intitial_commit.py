@@ -40,7 +40,7 @@ def upgrade() -> None:
                               'specieskey', 'decimallatitude', 'decimallongitude'], unique=False)
 
     op.create_table('classifier_species',
-                    sa.Column('_family', sa.String(), nullable=True),
+                    sa.Column('family', sa.String(), nullable=True),
                     sa.Column('genus', sa.String(), nullable=True),
                     sa.Column('species', sa.String(), nullable=True),
                     sa.Column('familykey', sa.Integer(), nullable=True),
