@@ -3,13 +3,16 @@ import uvicorn
 from fastapi import FastAPI
 from routers import classifier, taxonomy, observations
 
-app = FastAPI(debug=True, docs_url='/', title="FungID API", contact={
-    "name": "FungID",
-    "url": "https://fungid.app",
-    "email": "michael@fungid.app"
-    },
-              version="0.0.1",
-              )
+app = FastAPI(
+        debug=True, 
+        docs_url='/', title="FungID API", 
+        contact={
+            "name": "FungID",
+            "url": "https://fungid.app",
+            "email": "michael@fungid.app"
+        },
+        version="0.0.1",
+    ) 
 
 
 app.include_router(classifier.router)

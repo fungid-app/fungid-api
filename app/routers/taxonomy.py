@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
-from db import crud
+from sqlmodel import Session, select
 from db.models import core
 from dependencies import get_db
 from fastapi_pagination import Page
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination.ext.sqlmodel import paginate
 
 router = APIRouter(
     tags=["taxonomy"],
@@ -13,19 +12,22 @@ router = APIRouter(
 
 
 @router.get("/species/", response_model=Page[core.Species])
-def read_users(db: Session = Depends(get_db)):
-    species = crud.get_all_species(db)
-    return paginate(species)
+def get_all_species(db: Session = Depends(get_db)):
+    return paginate(db, select(core.Species))
 
 
 @router.get("/species/{name_or_id}", response_model=core.Species)
-def read_user(name_or_id: str, db: Session = Depends(get_db)):
-    db_species = crud.get_species(db, name=name_or_id)
+def get_species(name_or_id: str, db: Session = Depends(get_db)):
+    db_species = db.exec(
+        select(core.Species).where(core.Species.species == name_or_id)).first()
 
     if db_species is None:
-        db_species = crud.get_species_by_id(db, id=int(name_or_id))
+        db_species = db.exec(
+            select(core.Species)
+            .where(core.Species.id == int(name_or_id))
+        ).first()
 
     if db_species is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Species not found")
 
     return db_species
