@@ -42,7 +42,7 @@ RUN rm -rf gdal-3.4.0  &&\
     rm -rf proj-8.2.1 &&\
     rm gdal-3.4.0.tar.gz
     
-RUN apt-get -y install tk
+# RUN apt-get -y install tk
 
 ENV DISK=/var/data/v0.4.1/
 ENV MODEL_FILE_NAME=image-model.pkl
