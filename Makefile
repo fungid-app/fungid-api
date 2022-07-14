@@ -131,6 +131,9 @@ test-api:
 test-prod-api:
 	http -f POST https://classifier.fungid.app/classify image0@dbs/images/500/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01
 
+load-prod-db:
+	scp -r data/ bob.local:/production/data/fungid-api
+
 # Jupyter Lab
 jupyter:
 	jupyter-lab --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' 
