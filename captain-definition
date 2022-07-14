@@ -1,4 +1,4 @@
 {
-  "schemaVersion": 2,
-  "dockerfilePath": "./classifier-api/Dockerfile"
+  "schemaVersion": 2
+  // "dockerfilePath": "./Dockerfile"
 }
