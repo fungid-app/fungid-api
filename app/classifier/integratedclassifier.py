@@ -1,7 +1,7 @@
-from app.classifier.observation import Observation
-from app.classifier.imageclassifier import ImageClassifier
-from app.classifier.tab_model import TabModel
-from app.classifier.location_model import LocationModel
+from .classifier.observation import Observation
+from .classifier.imageclassifier import ImageClassifier
+from .classifier.tab_model import TabModel
+from .classifier.location_model import LocationModel
 import pandas as pd
 
 
