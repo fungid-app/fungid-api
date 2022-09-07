@@ -15,6 +15,7 @@ RUN apt-get install -y \
     libsqlite3-dev \
     libcurl4-openssl-dev \
     pkg-config \
+    tk \
     && rm -rf /var/lib/apt/lists/*
 
 # Installing gdal on debian
@@ -42,9 +43,6 @@ RUN rm -rf gdal-3.4.0  &&\
     rm -rf proj-8.2.1 &&\
     rm gdal-3.4.0.tar.gz
     
-RUN add-apt-repository universe
-RUN apt-get -y install tk-dev
-
 ENV DISK=/var/data/v0.4.1/
 ENV MODEL_FILE_NAME=image-model.pkl
 ENV KG_FILE_NAME=kg.tif
