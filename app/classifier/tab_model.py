@@ -1,8 +1,7 @@
 import pandas as pd
 import sqlite3
 
-from torch import Tensor, tensor
-from .observation import Observation
+from app.classifier.observation import Observation
 
 
 class TabModel():
@@ -36,6 +35,6 @@ class TabModel():
             ).set_index('species')
 
             max_val = stats.likelihood.max()
-            return ((stats.likelihood / max_val) + 1) / 2
+            return (((stats.likelihood / max_val) + 1) / 2).sort_values(ascending=False)
 
         return pd.Series()

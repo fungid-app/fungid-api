@@ -126,10 +126,19 @@ create-versioned-sqlite:
 	sqlite3 $(SQLITEDB) ".dump speciesstats" | sqlite3 dbs/fungid-v0-4.sqlite
 	
 test-api:
-	http -f POST 0.0.0.0:8080/classify image0@dbs/images/500/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01 > out.txt
+	curl -X 'PUT' \
+		'http://0.0.0.0:8080/classifier/full?date=2022-09-07T20%3A41%3A16Z&lat=52.905696&lon=-1.225849' \
+		-H 'accept: application/json' \
+		-H 'Content-Type: multipart/form-data' \
+		-F 'images=@dbs/images/500/2593822195-1.png;type=image/jpeg'
+
 
 test-prod-api:
-	http -f POST https://classifier.fungid.app/classify image0@dbs/images/500/2593822195-1.png lat=52.905696 lon=-1.225849 date=2020-01-01
+	curl -X 'PUT' \
+		'https://api.fungid.app/classifier/full?date=2022-09-07T20%3A41%3A16Z&lat=52.905696&lon=-1.225849' \
+		-H 'accept: application/json' \
+		-H 'Content-Type: multipart/form-data' \
+		-F 'images=@dbs/images/500/2593822195-1.png;type=image/jpeg'
 
 load-prod-db:
 	scp -r data/ bob.local:/production/data/fungid-api

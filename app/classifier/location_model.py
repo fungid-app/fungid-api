@@ -1,8 +1,6 @@
 import pandas as pd
 import sqlite3
 import math
-from torch import Tensor, tensor
-from .observation import Observation
 
 
 class LocationModel():
@@ -24,7 +22,7 @@ class LocationModel():
             raise Exception("Error getting species stats")
 
         max_val = location_stats.max()
-        return ((location_stats / max_val) + 1) / 2
+        return (((location_stats / max_val) + 1) / 2).sort_values(ascending=False)
 
 
 def _get_locations(con,  lat: float, long: float, dist: int) -> pd.Series:

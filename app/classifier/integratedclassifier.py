@@ -1,7 +1,7 @@
-from .observation import Observation
-from .imageclassifier import ImageClassifier
-from .tab_model import TabModel
-from .location_model import LocationModel
+from app.classifier.observation import Observation
+from app.classifier.imageclassifier import ImageClassifier
+from app.classifier.tab_model import TabModel
+from app.classifier.location_model import LocationModel
 import pandas as pd
 
 
@@ -30,4 +30,4 @@ class IntegratedClassifier:
         df = self.get_all_predictions(obs, only_local=only_local)
         df = df.fillna(.5).prod(axis=1)
         df = df/df.sum()
-        return df
+        return df.sort_values(ascending=False)

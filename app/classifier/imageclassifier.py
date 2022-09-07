@@ -14,7 +14,7 @@ class ImageClassifier:
             pd.concat([self._get_prediction(image, str(i))
                       for i, image in enumerate(images)], axis=1)
         )
-        return df.mean(axis=1), df  # type: ignore
+        return df.mean(axis=1).sort_values(ascending=False), df  # type: ignore
 
     def _get_prediction(self, image: PILImage, idx: str) -> pd.Series:
         _, _, probs = self.learner.predict(image)
