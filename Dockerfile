@@ -1,6 +1,6 @@
 FROM python:3.9-slim-buster
 
-RUN apt-get update && apt-get install -y git python3-dev gcc 
+RUN apt-get update -y && apt-get install -y git python3-dev gcc 
 
 USER root
 RUN apt-get install -y \
