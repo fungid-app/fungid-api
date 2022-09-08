@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
 
-from .classifier.observation import Observation
+from .observation import Observation
 
 
 class TabModel():
