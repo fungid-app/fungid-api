@@ -48,6 +48,7 @@ ENV MODEL_FILE_NAME=image-model.pkl
 ENV KG_FILE_NAME=kg.tif
 ENV ELU_FILE_NAME=elu.tif
 ENV DB_FILE_NAME=api.sqlite3
+ENV STATIC_FILES=static
 
 COPY requirements.txt .
 
