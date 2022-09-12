@@ -12,7 +12,7 @@ class LocationModel():
         with sqlite3.connect(self.connection_string) as con:
             total_obs, total_species, dist = 0, 0, 25
 
-            while total_obs < 10000 and total_species < 200:
+            while total_obs < 15000 and total_species < 400:
                 location_stats = _get_locations(con, lat, long, dist=dist)
                 total_obs = location_stats.sum()
                 total_species = len(location_stats.index)
