@@ -17,8 +17,8 @@ app = FastAPI(
         version="0.0.1",
     servers=[
         {
-            "server": "https://api.fungid.app",
-            "url": "Production server"
+            "url": "https://api.fungid.app",
+            "description": "Production server"
         }
     ],
     ) 
