@@ -2,8 +2,10 @@ from fastapi_pagination import add_pagination
 import uvicorn
 from fastapi import FastAPI
 from routers import classifier, taxonomy, observations
+from fastapi.openapi.models import Server
 from fastapi.staticfiles import StaticFiles
 from decouple import config
+
 
 app = FastAPI(
         debug=True, 
@@ -14,6 +16,7 @@ app = FastAPI(
             "email": "michael@fungid.app"
         },
         version="0.0.1",
+    servers=[{"https://api.fungid.app":"Production server"}],
     ) 
 
 static_folder = str(config('STATIC_FILES'))
