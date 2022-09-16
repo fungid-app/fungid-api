@@ -7,6 +7,7 @@ class ImageClassifier:
     def __init__(self, filename: str, cpu=True):
         self.learner: Learner = load_learner(filename, cpu=cpu)
         self.learner.no_mbar()
+        self.learner.no_logging()
         self.vocab = pd.DataFrame(self.learner.dls.vocab, columns=[
                                   "species"]).set_index("species")
 
