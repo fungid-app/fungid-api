@@ -13,6 +13,7 @@ class IntegratedClassifier:
                  db_str: str,
                  cpu=True):
         self.image_classifier = ImageClassifier(img_classifier_path, cpu=cpu)
+        self.image_classifier
         self.tab_model = TabModel(db_str)
         self.location_model = LocationModel(db_str)
 
