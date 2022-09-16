@@ -4,7 +4,7 @@ from fastai.torch_core import TensorCategory
 from fastai.vision.all import *
 from fastai.data.external import *
 import torch.nn.functional as F
-from .observation import Observation
+from classifier.observation import Observation
 
 
 def get_x(a):

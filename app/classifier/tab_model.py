@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
 
-from .observation import Observation
+from classifier.observation import Observation
 
 
 class TabModel():
@@ -20,7 +20,7 @@ class TabModel():
             )
 
             stats = pd.read_sql_query(
-                """SELECT species, SUM(likelihood) AS likelihood
+                """SELECT species, SUM(likelihood) AS tab_score
                 FROM classifier_speciesstats s
                 WHERE (
                     stat = 'kg' AND value = ?
@@ -34,7 +34,7 @@ class TabModel():
                 params=params  # type: ignore
             ).set_index('species')
 
-            max_val = stats.likelihood.max()
-            return (((stats.likelihood / max_val) + 1) / 2).sort_values(ascending=False)
+            max_val = stats.tab_score.max()
+            return (((stats.tab_score / max_val) + 1) / 2).sort_values(ascending=False)
 
         return pd.Series()

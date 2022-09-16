@@ -28,7 +28,7 @@ class LocationModel():
 def _get_locations(con,  lat: float, long: float, dist: int) -> pd.Series:
     p1, p2 = _get_bounding_box(lat, long, dist)
 
-    return pd.read_sql_query("""SELECT t.species, COUNT(*) as local--,
+    return pd.read_sql_query("""SELECT t.species, COUNT(*) as local_score--,
                                     --MIN(ABS(decimallatitude - ?)) AS close_lat,
                                     --MIN(ABS(decimallongitude - ?)) AS close_long
                                 FROM classifier_species t
@@ -36,7 +36,7 @@ def _get_locations(con,  lat: float, long: float, dist: int) -> pd.Series:
                                 WHERE decimallatitude BETWEEN ? AND ?
                                 AND decimallongitude BETWEEN ? AND ?
                                 GROUP BY 1;""",
-                             con, params=(p1[0], p2[0], p1[1], p2[1])).set_index('species').local
+                             con, params=(p1[0], p2[0], p1[1], p2[1])).set_index('species').local_score
 
 
 def _get_bounding_box(lat, lon, dist):

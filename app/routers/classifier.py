@@ -6,6 +6,7 @@ from typing import Dict
 from io import BytesIO
 from fastai.vision.core import PILImage
 from fastapi import UploadFile
+from classifier.predictions import FullPredictions
 
 from classifier.integratedclassifier import IntegratedClassifier
 from classifier.location_model import LocationModel
@@ -55,12 +56,11 @@ async def parse_images_from_request(images: list[UploadFile]):
     return parsed_images
 
 
-@router.put('/full', response_model=Dict[str, float])
+@router.put('/full', response_model=FullPredictions)
 async def evaluate_full_classifier(date: datetime, lat: float, lon: float, images: list[UploadFile]):
     parsed_images = await parse_images_from_request(images)
     obs = obs_factory.create(parsed_images, lat, lon, date)
-    return full_classifier.get_combined_predictions(
-        obs).to_dict()
+    return full_classifier.get_combined_predictions(obs)
     
 
 @router.get('/location', response_model=Dict[str, float])
