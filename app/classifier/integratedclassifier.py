@@ -41,8 +41,10 @@ class IntegratedClassifier:
 
         df['score'] = df.prod(axis=1)
         df['probability'] = df.score/df.score.sum()
+
         df.loc[df.is_local, 'local_probability'] = (
             df.loc[df.is_local, 'score'] / df.loc[df.is_local, 'score'].sum())  # type: ignore
+        df = df.fillna(0)
 
         return df.drop(columns=['score']).sort_values(by='probability', ascending=False)
 

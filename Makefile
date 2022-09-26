@@ -36,6 +36,10 @@ resize-images:
 			convert $(VALIDATED)/{} -resize '500x>' $(VALID500)/{.}.png \
 		&& mv $(VALIDATED)/{} $(CONVERTED)/"
 
+shrink-backups:
+	find backup -size +4M -type f | \
+		parallel -j16 "convert -resize 50% {} {}"
+
 resize-to-prod:
 	comm -23 <(ls dbs/images/500) <(ls dbs/images/224) --check-order \
 		| awk '{print "dbs/images/500/" $0}' \
@@ -54,7 +58,12 @@ register-converted:
 
 sync-to-dlm:
 	find $(BACKUP) -type f \
-		| parallel -j60 "scp {} 192.168.88.50:/mnt/4tb/fungid/{} && rm -v {}"
+		| parallel -j8 "scp {} 192.168.88.50:/mnt/4tb/fungid/{} && rm -v {}"
+
+sync-to-dlm:
+	find . -type f \
+		| parallel -j1 "cp {} /mnt/4tb/fungid/{} && rm -v {}"
+
 
 register-errors:
 	find $(ERRORS) -type f | grep -o '[a-z0-9]\+\/[0-9]\+\-[0-9]\+' | tr '-' ',' | tr '/' ',' >> $(ERRORRECORD) \

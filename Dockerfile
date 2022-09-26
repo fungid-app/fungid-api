@@ -49,6 +49,7 @@ ENV KG_FILE_NAME=kg.tif
 ENV ELU_FILE_NAME=elu.tif
 ENV DB_FILE_NAME=api.sqlite3
 ENV STATIC_FILES=static
+ENV OBSERVATION_IMAGES=/var/data/observation_images
 
 COPY requirements.txt .
 

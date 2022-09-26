@@ -26,6 +26,9 @@ app = FastAPI(
 static_folder = str(config('STATIC_FILES'))
 app.mount("/static", StaticFiles(directory=static_folder), name="static")
 
+obs_imgs_folder = str(config('OBSERVATION_IMAGES'))
+app.mount("/images/observations", StaticFiles(directory=obs_imgs_folder), name="obs_images")
+
 app.include_router(classifier.router)
 app.include_router(taxonomy.router)
 app.include_router(observations.router)
