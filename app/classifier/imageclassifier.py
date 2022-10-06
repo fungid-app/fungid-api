@@ -1,7 +1,7 @@
 from fastai.vision.all import load_learner, PILImage, Learner
 from typing import Tuple
 import pandas as pd
-
+from classifier.helpers import *
 
 class ImageClassifier:
     def __init__(self, filename: str, cpu=True):

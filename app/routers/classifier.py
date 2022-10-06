@@ -7,7 +7,7 @@ from io import BytesIO
 from fastai.vision.core import PILImage
 from fastapi import UploadFile
 from classifier.predictions import FullPredictions
-
+from classifier.helpers import *
 from classifier.integratedclassifier import IntegratedClassifier
 from classifier.location_model import LocationModel
 from classifier.imageclassifier import ImageClassifier
