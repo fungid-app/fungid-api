@@ -1,96 +1,5 @@
-import torch
-from torch import tensor
-from fastai.torch_core import TensorCategory
 from fastai.vision.all import *
 from fastai.data.external import *
-import torch.nn.functional as F
-from classifier.observation import Observation
-
-
-def get_x(a):
-    return a[0]
-
-
-def get_y(a):
-    return a[1]
-
-
-def accuracy_species(inp, targ, axis=-1):
-    pred, targ = flatten_check(inp.argmax(dim=axis), targ)
-    return (pred == targ).float().mean()
-
-
-def top_5(inp, targ, axis=-1):
-    return top_n(5, inp, targ, axis)
-
-
-def top_10(inp, targ, axis=-1):
-    return top_n(10, inp, targ, axis)
-
-
-def top_n(n, inp, targ, axis=-1):
-    _, idx = torch.topk(inp, n)
-    return (idx == targ.unsqueeze(axis)).any(axis).float().mean()
-
-
-def accuracy_tax(tax_targets, inp, targ, axis=-1):
-    temp = [torch.argmax(x) for x in inp]
-    new_inp = tensor([tax_targets[x] for x in temp])
-    new_targ = tensor([tax_targets[x] for x in targ])
-    return (new_inp == new_targ).float().mean()
-
-
-def accuracy_family(inp, targ, axis=-1):
-    return accuracy_tax(family_targets, inp, targ, axis)
-
-
-def accuracy_genus(inp, targ, axis=-1):
-    return accuracy_tax(genus_targets, inp, targ, axis)
-
-
-def cross_entropy_species(input, target, weight=None, size_average=None, ignore_index=-100,
-                          reduce=None, reduction='mean'):
-    input_p = torch.softmax(input, dim=-1)
-    return F.nll_loss(torch.log(input_p), target, None, None, ignore_index, None, reduction)
-
-
-def cross_entropy_tax(tax_targets, target_dims, input, target, weight=None, size_average=None, ignore_index=-100,
-                      reduce=None, reduction='mean'):
-
-    # softmax to convert scores to probabilities
-    input_p = torch.softmax(input, dim=1)
-
-    # Sum the probabilities for each taxonomy classification
-    # Could not compile: new_input = scatter_add(input_p, tax_targets)
-    tax_index = tax_targets.repeat(len(input_p), 1)
-    new_input = torch.zeros(len(input_p), target_dims,
-                            dtype=input_p.dtype, device='cuda:0')
-    new_input.scatter_add_(1, tax_index, input_p)
-    # Create the new target
-    new_target = TensorCategory(tax_targets[target].long())
-    return F.nll_loss(torch.log(new_input), new_target, None, None, ignore_index, None, reduction)
-
-
-def cross_entropy_family(input, target, weight=None, size_average=None, ignore_index=-100,
-                         reduce=None, reduction='mean'):
-    return cross_entropy_tax(family_targets, family_dims, input, target, weight, size_average, ignore_index, reduce, reduction)
-
-
-def cross_entropy_genus(input, target, weight=None, size_average=None, ignore_index=-100,
-                        reduce=None, reduction='mean'):
-    return cross_entropy_tax(genus_targets, genus_dims, input, target, weight, size_average, ignore_index, reduce, reduction)
-
-
-def joint_loss(input, target, w=1, weight=None, size_average=None, ignore_index=-100,
-               reduce=None, reduction='mean'):
-    ce_species = cross_entropy_species(input, target, weight=None, size_average=None, ignore_index=-100,
-                                       reduce=None, reduction='mean')
-
-    ce_genus = cross_entropy_genus(input, target, weight=None, size_average=None, ignore_index=-100,
-                                   reduce=None, reduction='mean')
-
-    # Linear combination of the cross-entropy scores at the 2 levels in hierarchy.
-    return w*ce_species+(1-w)*ce_genus
 
 
 def get_tab_model_data(data):
@@ -119,11 +28,11 @@ def get_bounding_box(lat, lon, dist):
     return (lat - latdiff, lon - londiff), (lat + latdiff, lon + londiff)
 
 
-def obs_from_series(series: pd.Series, image_locs: list[str]) -> Observation:
-    images = [PILImage.create(img) for img in image_locs]
-    if images is None:
-        raise Exception("Could not load image: ", series.img)
+# def obs_from_series(series: pd.Series, image_locs: list[str]) -> Observation:
+#     images = [PILImage.create(img) for img in image_locs]
+#     if images is None:
+#         raise Exception("Could not load image: ", series.img)
 
-    date = datetime.strptime(series.eventdate, '%Y-%m-%d %H:%M:%S')
-    return Observation(images, series.decimallatitude, series.decimallongitude,
-                       date, series.kg, series.elu_class1, series.elu_class2, series.elu_class3)
+#     date = datetime.strptime(series.eventdate, '%Y-%m-%d %H:%M:%S')
+#     return Observation(images, series.decimallatitude, series.decimallongitude,
+#                        date, series.kg, series.elu_class1, series.elu_class2, series.elu_class3)
