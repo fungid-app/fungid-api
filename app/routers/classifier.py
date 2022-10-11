@@ -63,6 +63,7 @@ async def parse_images_from_request(images: list[UploadFile]):
 @ router.put('/full', response_model=FullPredictions)
 async def evaluate_full_classifier(date: datetime, lat: float, lon: float, images: list[UploadFile]):
     parsed_images = await parse_images_from_request(images)
+    print(f"Received {len(parsed_images)} images")
     obs = obs_factory.create(parsed_images, lat, lon, date)
     return full_classifier.get_combined_predictions(obs)
 
