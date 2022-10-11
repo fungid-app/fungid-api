@@ -6,7 +6,7 @@ from typing import Dict
 from io import BytesIO
 from fastai.vision.core import PILImage
 from fastapi import UploadFile
-from classifier.predictions import FullPredictions
+from classifier.predictions import ClassifierVersion, FullPredictions
 from classifier.integratedclassifier import IntegratedClassifier
 from classifier.location_model import LocationModel
 from classifier.imageclassifier import ImageClassifier
@@ -20,13 +20,14 @@ router = APIRouter(
 )
 
 model_version = str(config('MODEL_VERSION'))
+model_image_size = int(config('MODEL_IMAGE_SIZE'))
 model_path = str(config('MODEL_PATH'))
 kg_file_name = str(config('KG_FILE_PATH'))
 elu_file_name = str(config('ELU_FILE_PATH'))
 db_file_name = str(config('DB_FILE_PATH'))
 
 
-if model_version is None or model_path is None or kg_file_name is None or elu_file_name is None or db_file_name is None:
+if model_version is None or model_path is None or model_image_size is None or kg_file_name is None or elu_file_name is None or db_file_name is None:
     print("Missing environment variables")
     sys.exit(1)
 
@@ -84,6 +85,6 @@ async def evaluate_image_classifier(images: list[UploadFile]):
     return preds.to_dict()
 
 
-@router.get("/version", response_model=str)
+@router.get("/version", response_model=ClassifierVersion)
 async def get_version():
-    return model_version
+    return ClassifierVersion(version=model_version, image_size=model_image_size)

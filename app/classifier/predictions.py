@@ -27,3 +27,8 @@ class FullPredictions(BaseModel):
     date: datetime
     inferred: InferredData
     version: str
+
+
+class ClassifierVersion(BaseModel):
+    version: str
+    image_size: int
