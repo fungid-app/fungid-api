@@ -43,8 +43,8 @@ RUN rm -rf gdal-3.4.0  &&\
     rm -rf proj-8.2.1 &&\
     rm gdal-3.4.0.tar.gz
     
-ENV DISK=/var/data/v0.4.1/
-ENV MODEL_FILE_NAME=image-model.pkl
+ENV DISK=/var/data/v0.4/
+ENV MODEL_VERSION=v0.4.1
 ENV KG_FILE_NAME=kg.tif
 ENV ELU_FILE_NAME=elu.tif
 ENV DB_FILE_NAME=api.sqlite3

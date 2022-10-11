@@ -1,1 +1,0 @@
-{"detail":[{"loc":["query","date"],"msg":"field required","type":"value_error.missing"},{"loc":["query","lat"],"msg":"field required","type":"value_error.missing"},{"loc":["query","lon"],"msg":"field required","type":"value_error.missing"},{"loc":["body","images"],"msg":"field required","type":"value_error.missing"}]}

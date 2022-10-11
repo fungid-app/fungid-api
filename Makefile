@@ -155,3 +155,10 @@ load-prod-db:
 # Jupyter Lab
 jupyter:
 	jupyter-lab --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' 
+
+gc-stats:
+	nvidia-smi -q -g 0 -d UTILIZATION -l 1 
+	
+# App
+upload-app-images:
+	cat $(DBFOLDER)/app-images.csv | parallel -j16 "s3cmd put /mnt/4tb/fungid/dbs/images/backup/{} s3://inciteful/fungid/app-images/{}"
