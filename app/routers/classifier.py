@@ -82,3 +82,8 @@ async def evaluate_image_classifier(images: list[UploadFile]):
     parsed_images = await parse_images_from_request(images)
     preds, _ = image_classifier.get_predictions(parsed_images)
     return preds.to_dict()
+
+
+@router.get("/version", response_model=str)
+async def get_version():
+    return model_version
