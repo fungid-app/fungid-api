@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from classifier.observation import Observation
 from classifier.imageclassifier import ImageClassifier
 from classifier.predictions import FullPrediction, FullPredictions, InferredData
@@ -10,10 +11,11 @@ import pandas as pd
 class IntegratedClassifier:
     def __init__(self,
                  img_classifier_path: str,
+                 img_classifier_version: str,
                  db_str: str,
                  cpu=True):
         self.image_classifier = ImageClassifier(img_classifier_path, cpu=cpu)
-        self.image_classifier
+        self.image_classifier_version = img_classifier_version
         self.tab_model = TabModel(db_str)
         self.location_model = LocationModel(db_str)
 
@@ -64,6 +66,7 @@ class IntegratedClassifier:
             if getattr(row, 'probability') > min_score]
 
         return FullPredictions(
+            version=self.image_classifier_version,
             predictions=predictions,
             date=datetime.now(),
             inferred=InferredData(

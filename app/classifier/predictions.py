@@ -26,3 +26,4 @@ class FullPredictions(BaseModel):
     predictions: list[FullPrediction]
     date: datetime
     inferred: InferredData
+    version: str

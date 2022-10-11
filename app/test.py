@@ -1,6 +1,4 @@
 import os
-import sqlite3
-from typing import Optional
 from core.integratedclassifier import IntegratedClassifier
 from core.observation_factory import ObservationFactory
 from core.tab_model import TabModel
@@ -33,7 +31,7 @@ def get_observation() -> Observation:
 
 
 def get_image_classifier() -> ImageClassifier:
-    path = get_env_var("MODEL_FILE_NAME")
+    path = get_env_var("MODEL_PATH")
     return ImageClassifier(path)
 
 
@@ -44,14 +42,14 @@ def get_tab_model() -> TabModel:
 
 def get_integrated_classifier():
     ic = IntegratedClassifier(get_env_var(
-        "MODEL_FILE_NAME"), get_env_var("SQLITE_PATH"))
+        "MODEL_PATH"), get_env_var("SQLITE_PATH"))
     return ic
 
 
 def observation_factory():
-    kgpath = get_env_var("KG_FILE_NAME")
-    elupath = get_env_var("ELU_FILE_NAME")
-    sqlite = get_env_var("DB_FILE_NAME")
+    kgpath = get_env_var("KG_FILE_PATH")
+    elupath = get_env_var("ELU_FILE_PATH")
+    sqlite = get_env_var("DB_FILE_PATH")
 
     return ObservationFactory(
         KGRaster(kgpath), EluRaster(elupath, sqlite))

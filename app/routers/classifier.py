@@ -19,28 +19,31 @@ router = APIRouter(
     prefix="/classifier"
 )
 
-disk = str(config('DISK'))
 model_version = str(config('MODEL_VERSION'))
-kg_file_name = str(config('KG_FILE_NAME'))
-elu_file_name = str(config('ELU_FILE_NAME'))
-db_file_name = str(config('DB_FILE_NAME'))
+model_path = str(config('MODEL_PATH'))
+kg_file_name = str(config('KG_FILE_PATH'))
+elu_file_name = str(config('ELU_FILE_PATH'))
+db_file_name = str(config('DB_FILE_PATH'))
 
 
-if disk is None or model_version is None or kg_file_name is None or elu_file_name is None or db_file_name is None:
+if model_version is None or model_path is None or kg_file_name is None or elu_file_name is None or db_file_name is None:
     print("Missing environment variables")
     sys.exit(1)
 
-db_con_str = disk + db_file_name
-model_path = "{}/{}-model.pkl".format(disk, model_version)
-
 full_classifier = IntegratedClassifier(
-    model_path, db_con_str, cpu=True)
-location_classifier = LocationModel(db_con_str)
-tab_classifier = TabModel(db_con_str)
+    model_path,
+    model_version,
+    db_file_name,
+    cpu=True
+)
+location_classifier = LocationModel(db_file_name)
+tab_classifier = TabModel(db_file_name)
 image_classifier = ImageClassifier(model_path, cpu=True)
 
 obs_factory = ObservationFactory(
-    KGRaster(disk + kg_file_name), EluRaster(disk + elu_file_name, disk + db_file_name))
+    KGRaster(kg_file_name),
+    EluRaster(elu_file_name, db_file_name)
+)
 
 
 async def parse_images_from_request(images: list[UploadFile]):
@@ -56,25 +59,25 @@ async def parse_images_from_request(images: list[UploadFile]):
     return parsed_images
 
 
-@router.put('/full', response_model=FullPredictions)
+@ router.put('/full', response_model=FullPredictions)
 async def evaluate_full_classifier(date: datetime, lat: float, lon: float, images: list[UploadFile]):
     parsed_images = await parse_images_from_request(images)
     obs = obs_factory.create(parsed_images, lat, lon, date)
     return full_classifier.get_combined_predictions(obs)
 
 
-@router.get('/location', response_model=Dict[str, float])
+@ router.get('/location', response_model=Dict[str, float])
 async def evaluate_location_classifier(lat: float, lon: float):
     return location_classifier.get_predictions(lat, lon).to_dict()
 
 
-@router.get('/tabular', response_model=Dict[str, float])
+@ router.get('/tabular', response_model=Dict[str, float])
 async def evaluate_tabular_classifier(date: datetime, lat: float, lon: float):
     obs = obs_factory.create([], lat, lon, date)
     return tab_classifier.get_predictions(obs).to_dict()
 
 
-@router.put('/image', response_model=Dict[str, float])
+@ router.put('/image', response_model=Dict[str, float])
 async def evaluate_image_classifier(images: list[UploadFile]):
     parsed_images = await parse_images_from_request(images)
     preds, _ = image_classifier.get_predictions(parsed_images)
