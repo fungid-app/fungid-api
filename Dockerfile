@@ -43,18 +43,19 @@ RUN rm -rf gdal-3.4.0  &&\
     rm -rf proj-8.2.1 &&\
     rm gdal-3.4.0.tar.gz
     
+COPY requirements.txt .
+
+RUN pip install --upgrade -r requirements.txt
+
 ENV DISK=/var/data/v0.4
-ENV MODEL_VERSION=v0.4.2
-ENV MODEL_PATH="$DISK/v0.4.2-model.pkl"
+ENV MODEL_VERSION=0.4.2
+ENV MODEL_IMAGE_SIZE=384
+ENV MODEL_PATH="$DISK/v${MODEL_VERSION}-model.pkl"
 ENV KG_FILE_PATH="$DISK/kg.tif"
 ENV ELU_FILE_PATH="$DISK/elu.tif"
 ENV DB_FILE_PATH="$DISK/api.sqlite3"
 ENV STATIC_FILES=static
 ENV OBSERVATION_IMAGES=/var/data/observation_images
-
-COPY requirements.txt .
-
-RUN pip install --upgrade -r requirements.txt
 
 COPY app app
 
