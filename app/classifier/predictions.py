@@ -32,3 +32,8 @@ class FullPredictions(BaseModel):
 class ClassifierVersion(BaseModel):
     version: str
     image_size: int
+
+
+class BasicPrediction(BaseModel):
+    species: str
+    probability: float

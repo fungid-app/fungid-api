@@ -1,18 +1,21 @@
 from fastapi import APIRouter
 from decouple import config
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from typing import Dict
 from io import BytesIO
 from fastai.vision.core import PILImage
 from fastapi import UploadFile
-from classifier.predictions import ClassifierVersion, FullPredictions
+from fastapi_pagination import Page, paginate
+from classifier.observation import normalized_month
+from classifier.predictions import BasicPrediction, ClassifierVersion, FullPredictions
 from classifier.integratedclassifier import IntegratedClassifier
 from classifier.location_model import LocationModel
 from classifier.imageclassifier import ImageClassifier
 from classifier.tab_model import TabModel
 from classifier.georaster import KGRaster, EluRaster
 from classifier.observation_factory import ObservationFactory
+import pandas as pd
 
 router = APIRouter(
     tags=["classifier"],
@@ -89,3 +92,29 @@ async def evaluate_image_classifier(images: list[UploadFile]):
 @router.get("/version", response_model=ClassifierVersion)
 async def get_version():
     return ClassifierVersion(version=model_version, image_size=model_image_size)
+
+
+@router.get("/local", response_model=list[str])
+async def get_local(lat: float, lon: float):
+    preds = location_classifier.get_predictions(lat, lon)
+    return preds.index.to_list()
+
+
+@router.get("/seasonal", response_model=Page[BasicPrediction])
+async def get_seasonal(lat: float, lon: float, date: date = datetime.now().date()):
+
+    df = pd.DataFrame(location_classifier.get_predictions(lat, lon, 75))
+    m = normalized_month(lat, date.month)
+    df = df.join(tab_classifier.get_seasonal(m))
+    df['score'] = df.prod(axis=1)
+    df['score'] = df['score'] / df['score'].max()
+
+    predictions = [
+        BasicPrediction(
+            species=getattr(row, 'Index'),
+            probability=getattr(row, 'score'),
+        )
+        for row in df.sort_values(by='score', ascending=False).itertuples()
+        if getattr(row, 'score') > .001]
+
+    return paginate(predictions)
