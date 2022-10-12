@@ -1,3 +1,4 @@
+from typing import Optional
 import pandas as pd
 import sqlite3
 import math
@@ -7,22 +8,25 @@ class LocationModel():
     def __init__(self, connection_string: str):
         self.connection_string = connection_string
 
-    def get_predictions(self, lat: float, long: float) -> pd.Series:
+    def get_predictions(self, lat: float, long: float, dist: Optional[int] = 25) -> pd.Series:
         location_stats = None
         with sqlite3.connect(self.connection_string) as con:
-            total_obs, total_species, dist = 0, 0, 25
+            total_obs, total_species, _dist = 0, 0, 25
+
+            if dist is not None:
+                _dist = dist
 
             while total_obs < 15000 and total_species < 400:
-                location_stats = _get_locations(con, lat, long, dist=dist)
+                location_stats = _get_locations(con, lat, long, dist=_dist)
                 total_obs = location_stats.sum()
                 total_species = len(location_stats.index)
-                dist += dist
+                _dist += _dist
 
         if location_stats is None:
             raise Exception("Error getting species stats")
 
         max_val = location_stats.max()
-        return (((location_stats / max_val) + 1) / 2).sort_values(ascending=False)
+        return (location_stats / max_val).sort_values(ascending=False)
 
 
 def _get_locations(con,  lat: float, long: float, dist: int) -> pd.Series:

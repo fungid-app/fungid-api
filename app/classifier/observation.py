@@ -16,10 +16,7 @@ class Observation:
         self.elu_class3 = elu_class3
 
     def normalized_month(self) -> int:
-        if(self.lat < 0):
-            return ((self.date.month + 6) % 12) + 1
-        else:
-            return self.date.month
+        return normalized_month(self.lat, self.date.month)
 
     def season(self) -> str:
         normalizedmonth = self.normalized_month()
@@ -44,3 +41,10 @@ class Observation:
             "elu_class2": self.elu_class2,
             "elu_class3": self.elu_class3
         })
+
+
+def normalized_month(lat: float, month: int) -> int:
+    if(lat < 0):
+        return ((month + 6) % 12) + 1
+    else:
+        return month
