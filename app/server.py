@@ -5,6 +5,17 @@ from routers import classifier, taxonomy, observations
 from fastapi.staticfiles import StaticFiles
 from decouple import config
 
+build_env = str(config('BUILD_ENV'))
+
+servers = []
+
+if(build_env != "development"):
+    servers.append(
+        {
+            "url": "https://api.fungid.app",
+            "description": "Production server"
+        }
+    )
 
 app = FastAPI(
     debug=True,
@@ -15,12 +26,7 @@ app = FastAPI(
         "email": "michael@fungid.app"
     },
     version="0.0.1",
-    servers=[
-        {
-            "url": "https://api.fungid.app",
-            "description": "Production server"
-        }
-    ],
+    servers=servers,
 )
 
 
