@@ -12,7 +12,9 @@ class ImageClassifier:
 
     def get_predictions(self, images: list[PILImage]) -> Tuple[pd.Series, pd.DataFrame]:
         df = self._get_predictions(images)
-        return df.mean(axis=1).sort_values(ascending=False), df  # type: ignore
+        score = df.prod(axis=1)
+        score = score / score.sum()
+        return score.sort_values(ascending=False), df  # type: ignore
 
     def _get_predictions(self, images: list[PILImage]) -> pd.DataFrame:
         test_dl = self.learner.dls.test_dl(images, num_workers=0)

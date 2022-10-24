@@ -40,6 +40,7 @@ full_classifier = IntegratedClassifier(
     db_file_name,
     cpu=True
 )
+
 location_classifier = LocationModel(db_file_name)
 tab_classifier = TabModel(db_file_name)
 image_classifier = ImageClassifier(model_path, cpu=True)

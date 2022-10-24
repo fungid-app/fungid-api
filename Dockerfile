@@ -49,7 +49,7 @@ RUN pip install --upgrade -r requirements.txt
 
 ENV BUILD_ENV=production
 ENV DISK=/var/data/v0.4
-ENV MODEL_VERSION=0.4.2
+ENV MODEL_VERSION=0.4.3
 ENV MODEL_IMAGE_SIZE=384
 ENV MODEL_PATH="$DISK/v${MODEL_VERSION}-model.pkl"
 ENV KG_FILE_PATH="$DISK/kg.tif"
