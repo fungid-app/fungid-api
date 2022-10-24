@@ -6,7 +6,6 @@ from typing import Dict
 from io import BytesIO
 from fastai.vision.core import PILImage
 from fastapi import UploadFile
-from fastapi_pagination import Page, paginate
 from classifier.observation import normalized_month
 from classifier.predictions import BasicPrediction, ClassifierVersion, FullPredictions
 from classifier.integratedclassifier import IntegratedClassifier
@@ -16,6 +15,22 @@ from classifier.tab_model import TabModel
 from classifier.georaster import KGRaster, EluRaster
 from classifier.observation_factory import ObservationFactory
 import pandas as pd
+
+from typing import TypeVar, Generic
+from fastapi import Query
+from fastapi_pagination import paginate
+from fastapi_pagination.default import Page as BasePage, Params as BaseParams
+
+T = TypeVar("T")
+
+
+class Params(BaseParams):
+    size: int = Query(500, ge=1, le=10_000, description="Page size")
+
+
+class Page(BasePage[T], Generic[T]):
+    __params_type__ = Params
+
 
 router = APIRouter(
     tags=["classifier"],
