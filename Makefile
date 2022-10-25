@@ -139,7 +139,8 @@ test-api:
 		'http://0.0.0.0:8080/classifier/full?date=2022-09-07T20%3A41%3A16Z&lat=52.905696&lon=-1.225849' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: multipart/form-data' \
-		-F 'images=@dbs/images/500/2593822195-1.png;type=image/jpeg'
+		-F 'images=@dbs/images/500/2593822195-1.png;type=image/jpeg' \
+		-F 'images=@dbs/images/500/2593822195-2.png;type=image/jpeg'
 
 
 test-prod-api:
@@ -147,7 +148,8 @@ test-prod-api:
 		'https://api.fungid.app/classifier/full?date=2022-09-07T20%3A41%3A16Z&lat=52.905696&lon=-1.225849' \
 		-H 'accept: application/json' \
 		-H 'Content-Type: multipart/form-data' \
-		-F 'images=@dbs/images/500/2593822195-1.png;type=image/jpeg'
+		-F 'images=@dbs/images/500/2593822195-1.png;type=image/jpeg' \
+		-F 'images=@dbs/images/500/2593822195-2.png;type=image/jpeg'
 
 load-prod-db:
 	scp -r data/ bob.local:/production/data/fungid-api

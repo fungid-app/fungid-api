@@ -26,15 +26,15 @@ class IntegratedClassifier:
 
         # Get Local Predcitions
         location_probs = self.location_model.get_predictions(obs.lat, obs.long)
-        is_local = (location_probs > 0).rename('is_local')
 
         # Combine all predictions
         df = pd.DataFrame(image_probs, columns=['image_score'])
-        df = pd.concat([df, tab_probs, location_probs, is_local], axis=1)
+        df = pd.concat([df, tab_probs, location_probs], axis=1)
 
         # Fill empty local predictions
-        df.is_local = df.is_local.fillna(False)
-        df = df.fillna(.25)
+        df['is_local'] = df.local_score > 0
+        df.local_score = (df.local_score + .4).fillna(.2)
+        df.local_score = df.local_score / df.local_score.max()
 
         return df
 
