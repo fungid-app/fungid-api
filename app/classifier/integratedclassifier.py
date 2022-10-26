@@ -1,5 +1,5 @@
-from datetime import datetime
 
+from datetime import datetime
 from classifier.observation import Observation
 from classifier.imageclassifier import ImageClassifier
 from classifier.predictions import FullPrediction, FullPredictions, InferredData
@@ -41,11 +41,16 @@ class IntegratedClassifier:
     def get_combined_predictions_df(self, obs: Observation) -> pd.DataFrame:
         df = self.get_all_predictions(obs)
 
-        df['score'] = df.prod(axis=1)
+        df['score'] = df.image_score * df.tab_score
         df['probability'] = df.score/df.score.sum()
 
+        local_base = df.loc[df.is_local, 'score'] * \
+            df.loc[df.is_local, 'local_score']
+
         df.loc[df.is_local, 'local_probability'] = (
-            df.loc[df.is_local, 'score'] / df.loc[df.is_local, 'score'].sum())  # type: ignore
+            local_base /
+            local_base.sum())  # type: ignore
+
         df = df.fillna(0)
 
         return df.drop(columns=['score']).sort_values(by='probability', ascending=False)
