@@ -1,7 +1,6 @@
 from datetime import datetime
-from tkinter.tix import Tree
 from typing import List, Optional
-from sqlalchemy import BigInteger, Column, ForeignKey, Index
+from sqlalchemy import BigInteger, Column, Index
 from sqlmodel import Relationship, SQLModel, Field, UniqueConstraint
 
 # DROP TABLE IF EXISTS gbif_observations;
@@ -26,30 +25,6 @@ class CommonName(SQLModel, table=True):
         Index('cn_species_name_language', "species_id", "name",
               "language", unique=True),
     )
-
-
-class Species(SQLModel, table=True):
-    __tablename__: str = "species"
-
-    id: int = Field(primary_key=True)
-    phylum: Optional[str] = Field(index=True)
-    classname: Optional[str] = Field(index=True)
-    order: Optional[str] = Field(index=True)
-    family: Optional[str] = Field(index=True)
-    genus: Optional[str] = Field(index=True)
-    species: Optional[str]
-    description: Optional[str]
-    included_in_classifier: bool = Field(default=False)
-    number_of_observations: Optional[int]
-
-    __table_args__ = (
-        Index("ix_species_species", "species", unique=True),
-        Index("species_included_in_classifier_index",
-              "included_in_classifier", "id", unique=True),
-    )
-
-    common_names: List[CommonName] = Relationship(back_populates="species")
-
 
 class GbifObserver(SQLModel, table=True):
     __tablename__: str = "gbif_observers"
@@ -101,7 +76,7 @@ class GbifObservation(SQLModel, table=True):
     species_id: Optional[int] = Field(foreign_key="species.id",
                                       index=True)
 
-    species: Species = Relationship(back_populates="observations")
+    species: "Species" = Relationship(back_populates="observations")
 
     observer_id: Optional[int] = Field(
         foreign_key="gbif_observers.id")
@@ -116,3 +91,29 @@ class GbifObservation(SQLModel, table=True):
               "latitude", "longitude", "public"),
         Index('obs_gbifobs_observer_idx', "observer_id")
     )
+
+
+class Species(SQLModel, table=True):
+    __tablename__: str = "species"
+
+    id: int = Field(primary_key=True)
+    phylum: Optional[str] = Field(index=True)
+    classname: Optional[str] = Field(index=True)
+    order: Optional[str] = Field(index=True)
+    family: Optional[str] = Field(index=True)
+    genus: Optional[str] = Field(index=True)
+    species: Optional[str]
+    description: Optional[str]
+    included_in_classifier: bool = Field(default=False)
+    number_of_observations: Optional[int]
+
+    __table_args__ = (
+        Index("ix_species_species", "species", unique=True),
+        Index("species_included_in_classifier_index",
+              "included_in_classifier", "id", unique=True),
+    )
+
+    common_names: List[CommonName] = Relationship(back_populates="species")
+
+    observations: List[GbifObservation] = Relationship(
+        back_populates="species")
