@@ -14,5 +14,3 @@ fastapi-pagination[sqlmodel]==0.9.3
 alembic==1.8.0
 sqlmodel==0.0.8
 timm==0.6.7
-matplotlib==3.5.2
-seaborn==0.12.1
