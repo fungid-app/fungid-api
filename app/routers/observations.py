@@ -101,5 +101,6 @@ def get_species_heatmap(species, z: int, x: int, y: int, db: Session = Depends(g
 def get_species_heatmap_lat_long(species, z: int, lat: float, lng: float, db: Session = Depends(get_db)):
     x, y = deg2num(lat, lng, z)
     # print(f"lat: {lat}, lng: {lng}, z: {z}, x: {x}, y: {y}")
-    # print(f"https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+    print(f"http://localhost:8080/observations/heatmap/{z}/{x}/{y}.png")
+
     return get_species_heatmap(species, z, x, y, db)

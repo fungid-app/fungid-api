@@ -1,9 +1,10 @@
-from PIL import Image
+from PIL import Image, ImageOps
 from typing import List, Tuple
 import math
 import numpy as np
 import colorsys
 import io
+
 # https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers_2
 
 
@@ -31,6 +32,7 @@ def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: flo
     # (60, 90, 90)
 
     bins = 16
+    rect_size = int(size / bins)
 
     if len(points) == 0:
         blank_img = Image.new(
@@ -42,7 +44,7 @@ def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: flo
 
     x, y = zip(*points)
 
-    n3 = np.zeros((bins, bins, 4), dtype='uint8')
+    n3 = np.zeros((size, size, 4), dtype='uint8')
     heatmap, xedges, yedges = np.histogram2d(
         x, y, bins=bins, range=[[0, max_x], [0, max_y]])
 
@@ -51,15 +53,17 @@ def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: flo
             if(heatmap[i, j] > 0):
                 val = heatmap[i, j]
                 intensity = 1 if val > 19 else (val / 19)
-                h = .3 - (intensity * .3)
-                vr, vg, vb, va = hlsa_to_rgb(h, .6, .7, 1)
-                n3[i, j, 0] = vr
-                n3[i, j, 1] = vg
-                n3[i, j, 2] = vb
-                n3[i, j, 3] = va
+                h = .17 - (intensity * .17)
+                vr, vg, vb, va = hlsa_to_rgb(h, .6, 1, 1)
+                irect = i * rect_size
+                jrect = j * rect_size
+                n3[irect:irect+rect_size, jrect:jrect+rect_size, 0] = vr
+                n3[irect:irect+rect_size, jrect:jrect+rect_size, 1] = vg
+                n3[irect:irect+rect_size, jrect:jrect+rect_size, 2] = vb
+                n3[irect:irect+rect_size, jrect:jrect+rect_size, 3] = va
 
-    img = Image.fromarray(n3, mode="RGBA").resize((size, size))
-
+    img = Image.fromarray(n3, mode="RGBA")  # .resize((size, size))
+    img = ImageOps.flip(img)
     return img
 
 
@@ -68,7 +72,7 @@ def generate_heatmap_bytes(points: List[Tuple[float, float]], max_x: float, max_
     return get_img_byte_array(img)
 
 
-def hlsa_to_rgb(h: float, s: float, l: float, a: float) -> Tuple[int, int, int, int]:
+def hlsa_to_rgb(h: float, l: float, s: float, a: float) -> Tuple[int, int, int, int]:
     r, g, b = colorsys.hls_to_rgb(h, l, s)
     return (int(r * 255), int(g * 255), int(b * 255), int(a * 255))
 
