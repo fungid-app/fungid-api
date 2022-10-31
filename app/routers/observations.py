@@ -1,3 +1,4 @@
+from typing import List, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlmodel import Session, select
 from db.models import core
@@ -56,10 +57,10 @@ def get_image_by_id(image_id: int, db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/heatmap/{species}/{z}/{x}/{y}.png",
-    response_class=Response
+    "/heatmap/{species}/{z}/{x}/{y}",
+    response_model=List[Tuple[float, float]]
 )
-def get_species_heatmap(species, z: int, x: int, y: int, db: Session = Depends(get_db)):
+def get_species_heatmap_observations(species, z: int, x: int, y: int, db: Session = Depends(get_db)):
     north_west, south_east = get_bounds(x, y, z)
 
     id = db.exec(select(core.Species.id).where(
@@ -82,8 +83,19 @@ def get_species_heatmap(species, z: int, x: int, y: int, db: Session = Depends(g
         ).options(load_only("latitude", "longitude"))
     ).all()
 
-    points = [((p.latitude or 0) - south_east[0],
-               (p.longitude or 0) - north_west[1]) for p in points]
+    return [(p.latitude, p.longitude) for p in points]
+
+
+@router.get(
+    "/heatmap/{species}/{z}/{x}/{y}.png",
+    response_class=Response
+)
+def get_species_heatmap(species, z: int, x: int, y: int, db: Session = Depends(get_db)):
+    points = get_species_heatmap_observations(species, z, x, y, db)
+    north_west, south_east = get_bounds(x, y, z)
+
+    points = [((lat or 0) - south_east[0],
+               (lng or 0) - north_west[1]) for (lat, lng) in points]
 
     img = generate_heatmap_bytes(points,
                                  north_west[0] - south_east[0],
