@@ -4,7 +4,7 @@ torchvision==0.13.1
 rasterio==1.3b1
 python-multipart==0.0.5
 uvicorn==0.17.6
-numpy==1.21.5
+numpy==1.22.0
 pandas==1.4.3
 fastapi[all]==0.78.0
 python-decouple
