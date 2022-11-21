@@ -16,6 +16,11 @@ if(build_env != "development"):
             "description": "Production server"
         }
     )
+else:
+    import logging
+    logging.basicConfig()
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
 
 app = FastAPI(
     debug=True,

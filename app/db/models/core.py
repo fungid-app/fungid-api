@@ -26,6 +26,7 @@ class CommonName(SQLModel, table=True):
               "language", unique=True),
     )
 
+
 class GbifObserver(SQLModel, table=True):
     __tablename__: str = "gbif_observers"
 
@@ -60,8 +61,11 @@ class GbifObservation(SQLModel, table=True):
         BigInteger(), autoincrement=False, primary_key=True))
 
     datecreated: Optional[datetime]
+    month: Optional[int]
+    day: Optional[int]
     latitude: Optional[float]
     longitude: Optional[float]
+    include_in_map: Optional[bool]
     public: Optional[bool]
     acces_rights: Optional[str]
     rights_holder: Optional[str]
@@ -89,6 +93,8 @@ class GbifObservation(SQLModel, table=True):
     __table_args__ = (
         Index('obs_gbifobs_sp_lat_lon_pub_idx', "species_id",
               "latitude", "longitude", "public"),
+        Index('gbif_observations_month_day_latitude_longitutde', "month", "day",
+              "latitude", "longitude"),
         Index('obs_gbifobs_observer_idx', "observer_id")
     )
 

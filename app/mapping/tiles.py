@@ -8,7 +8,7 @@ import io
 # https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Lon..2Flat._to_tile_numbers_2
 
 
-def num2deg(xtile, ytile, zoom) -> Tuple[float, float]:
+def num2deg(zoom: int, xtile: int, ytile: int,) -> Tuple[float, float]:
     n = 2.0 ** zoom
     lon_deg = xtile / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
@@ -16,7 +16,7 @@ def num2deg(xtile, ytile, zoom) -> Tuple[float, float]:
     return (lat_deg, lon_deg)
 
 
-def deg2num(lat_deg: float, lon_deg: float, zoom: int) -> Tuple[int, int]:
+def deg2num(zoom: int, lat_deg: float, lon_deg: float) -> Tuple[int, int]:
     lat_rad = math.radians(lat_deg)
     n = 2.0 ** zoom
     xtile = int((lon_deg + 180.0) / 360.0 * n)
@@ -24,11 +24,11 @@ def deg2num(lat_deg: float, lon_deg: float, zoom: int) -> Tuple[int, int]:
     return (xtile, ytile)
 
 
-def get_bounds(xtile: int, ytile: int, zoom) -> Tuple[Tuple[float, float], Tuple[float, float]]:
-    return (num2deg(xtile, ytile, zoom), num2deg(xtile + 1, ytile + 1, zoom))
+def get_bounds(zoom: int, xtile: int, ytile: int) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+    return (num2deg(zoom, xtile, ytile,), num2deg(zoom, xtile + 1, ytile + 1))
 
 
-def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: float, size: int, zoom: int) -> Image.Image:
+def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: float, size: int, scale: int) -> Image.Image:
     # (60, 90, 90)
 
     bins = 16
@@ -52,7 +52,7 @@ def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: flo
         for j in range(bins):
             if(heatmap[i, j] > 0):
                 val = heatmap[i, j]
-                intensity = 1 if val > 19 else (val / 19)
+                intensity = 1 if val > scale else (val / scale)
                 h = .17 - (intensity * .17)
                 vr, vg, vb, va = hlsa_to_rgb(h, .6, 1, 1)
                 irect = i * rect_size
@@ -67,8 +67,8 @@ def generate_heatmap(points: List[Tuple[float, float]], max_x: float, max_y: flo
     return img
 
 
-def generate_heatmap_bytes(points: List[Tuple[float, float]], max_x: float, max_y: float, size: int, zoom: int) -> bytes:
-    img = generate_heatmap(points, max_x, max_y, size, zoom)
+def generate_heatmap_bytes(points: List[Tuple[float, float]], max_x: float, max_y: float, size: int, scale: int) -> bytes:
+    img = generate_heatmap(points, max_x, max_y, size, scale)
     return get_img_byte_array(img)
 
 
